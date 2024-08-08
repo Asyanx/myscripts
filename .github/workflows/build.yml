@@ -1,4 +1,4 @@
-name: Asyanx Build
+name: Build
 
 on: [push]
 
