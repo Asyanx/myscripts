@@ -105,12 +105,12 @@ LINKER=ld.lld
 INCREMENTAL=0
 
 # Push ZIP to Telegram. 1 is YES | 0 is NO(default)
-PTTG=1
+PTTG=0
 if [ $PTTG = 1 ]
 then
 	# Set Telegram Chat ID
-	CHATID="-1001910249307"
-	TOKEN="5501360993:AAFLnvOrkUpsFJktYu-snmimKNoGk7_WVw8"
+	CHATID=""
+	TOKEN=""
 fi
 
 # Generate a full DEFCONFIG prior building. 1 is YES | 0 is NO(default)
@@ -189,8 +189,8 @@ WAKTU=$(date +"%F-%S")
 	if [ $COMPILER = "clang" ]
 	then
                 mkdir clang-llvm
-		wget https://github.com/ZyCromerZ/Clang/releases/download/19.0.0git-20240717-release/Clang-19.0.0git-20240717.tar.gz -O "Clang-19.0.0git-20240717.tar.gz"
-                tar -xf Clang-19.0.0git-20240717.tar.gz -C clang-llvm
+		wget https://github.com/ZyCromerZ/Clang/releases/download/19.0.0git-20240717-release/Clang-20.0.0git-20240807.tar.gz -O "Clang-20.0.0git-20240807.tar.gz"
+                tar -xf Clang-20.0.0git-20240807.tar.gz -C clang-llvm
 		git clone https://github.com/ZyCromerZ/aarch64-zyc-linux-gnu -b 14 gcc64 --depth=1
                 git clone https://github.com/ZyCromerZ/arm-zyc-linux-gnueabi -b 14 gcc32 --depth=1
 		GCC64_DIR=$KERNEL_DIR/gcc64
