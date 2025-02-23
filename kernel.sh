@@ -191,8 +191,8 @@ WAKTU=$(date +"%F-%S")
 	if [ $COMPILER = "clang" ]
 	then
                 mkdir clang-llvm
-		wget https://github.com/ZyCromerZ/Clang/releases/download/20.0.0git-20241206-release/Clang-20.0.0git-20241206.tar.gz -O "Clang-20.0.0git-20241206.tar.gz"
-                tar -xf Clang-20.0.0git-20241206.tar.gz -C clang-llvm
+		wget https://github.com/ZyCromerZ/Clang/releases/download/21.0.0git-20250223-release/Clang-21.0.0git-20250223.tar.gz -O "Clang-21.0.0git-20250223.tar.gz"
+                tar -xf Clang-21.0.0git-20250223.tar.gz -C clang-llvm
 		git clone https://github.com/ZyCromerZ/aarch64-zyc-linux-gnu -b 14 gcc64 --depth=1
                 git clone https://github.com/ZyCromerZ/arm-zyc-linux-gnueabi -b 14 gcc32 --depth=1
 		GCC64_DIR=$KERNEL_DIR/gcc64
