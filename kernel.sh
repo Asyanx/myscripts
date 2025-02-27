@@ -24,7 +24,7 @@ KERNEL="$WORKDIR/kernel"
 
 # Cloning Sources
 git clone --single-branch --depth=1 https://github.com/Asyanx/sea_kernel_xiaomi_sm6225 -b kila-r-oss $KERNEL && cd $KERNEL
-export LOCALVERSION=+my💕
+export LOCALVERSION=✨🦩
 
 # Bail out if script fails
 set -e
@@ -55,7 +55,7 @@ BASEDIR="$(basename "$KERNEL_DIR")"
 
 # PATCH KERNELSU & RELEASE VERSION
 KSU=1
-RELEASE=R2
+RELEASE=R5
 if [ $KSU = 1 ]
 then
 #	echo "CONFIG_KSU=y" >> arch/arm64/configs/vendor/"fog-perf_defconfig"
@@ -66,7 +66,7 @@ then
 fi
 
 # The name of the Kernel, to name the ZIP
-ZIPNAME="Kila"
+ZIPNAME="Sea"
 if [ $KSU = 1 ]
 then
    VER="$RELEASE-KSU"
@@ -77,7 +77,7 @@ fi
 # Build Author
 # Take care, it should be a universal and most probably, case-sensitive
 AUTHOR="AliStill"
-HOSTR="LoveeU"
+HOSTR="LoveUU"
 
 # Architecture
 ARCH=arm64
@@ -191,8 +191,8 @@ WAKTU=$(date +"%F-%S")
 	if [ $COMPILER = "clang" ]
 	then
                 mkdir clang-llvm
-		wget https://github.com/ZyCromerZ/Clang/releases/download/21.0.0git-20250223-release/Clang-21.0.0git-20250223.tar.gz -O "Clang-21.0.0git-20250223.tar.gz"
-                tar -xf Clang-21.0.0git-20250223.tar.gz -C clang-llvm
+		wget https://github.com/ZyCromerZ/Clang/releases/download/21.0.0git-20250226-release/Clang-21.0.0git-20250226.tar.gz -O "Clang-21.0.0git-20250226.tar.gz"
+                tar -xf Clang-21.0.0git-20250226.tar.gz -C clang-llvm
 		git clone https://github.com/ZyCromerZ/aarch64-zyc-linux-gnu -b 14 gcc64 --depth=1
                 git clone https://github.com/ZyCromerZ/arm-zyc-linux-gnueabi -b 14 gcc32 --depth=1
 		GCC64_DIR=$KERNEL_DIR/gcc64
