@@ -6,7 +6,7 @@ jobs:
   kernel-build:
     runs-on: ubuntu-latest
     container:
-      image: ubuntu:jammy-20231004
+      image: ubuntu:jammy-20250126
     steps:
     - uses: actions/checkout@v2
     - name: Setup CI
