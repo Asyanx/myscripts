@@ -24,7 +24,7 @@ KERNEL="$WORKDIR/kernel"
 
 # Cloning Sources
 git clone --single-branch --depth=1 https://github.com/Asyanx/sea_kernel_xiaomi_sm6225 -b kila-r-oss $KERNEL && cd $KERNEL
-export LOCALVERSION=+💕
+export LOCALVERSION=/R5+✨🦢
 
 # Bail out if script fails
 set -e
@@ -55,7 +55,7 @@ BASEDIR="$(basename "$KERNEL_DIR")"
 
 # PATCH KERNELSU & RELEASE VERSION
 KSU=1
-RELEASE=R4+
+RELEASE=R5+
 if [ $KSU = 1 ]
 then
 #	echo "CONFIG_KSU=y" >> arch/arm64/configs/vendor/"fog-perf_defconfig"
@@ -66,7 +66,7 @@ then
 fi
 
 # The name of the Kernel, to name the ZIP
-ZIPNAME="Kila"
+ZIPNAME="Sea"
 if [ $KSU = 1 ]
 then
    VER="$RELEASE-KSU"
@@ -76,8 +76,8 @@ fi
 
 # Build Author
 # Take care, it should be a universal and most probably, case-sensitive
-AUTHOR="AliStill"
-HOSTR="LoveeU"
+AUTHOR="Asyanxx"
+HOSTR="EOL"
 
 # Architecture
 ARCH=arm64
