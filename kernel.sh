@@ -24,7 +24,7 @@ KERNEL="$WORKDIR/kernel"
 
 # Cloning Sources
 git clone --single-branch --depth=1 https://github.com/Asyanx/sea_kernel_xiaomi_sm6225 -b luna-staging-backup $KERNEL && cd $KERNEL
-export LOCALVERSION=X/✨🦢
+export LOCALVERSION=X/✨🦄
 
 # Bail out if script fails
 set -e
@@ -191,8 +191,8 @@ WAKTU=$(date +"%F-%S")
 	if [ $COMPILER = "clang" ]
 	then
                 mkdir clang-llvm
-		wget https://github.com/ZyCromerZ/Clang/releases/download/21.0.0git-20250328-release/Clang-21.0.0git-20250328.tar.gz -O "Clang-21.0.0git-20250328.tar.gz"
-                tar -xf Clang-21.0.0git-20250328.tar.gz -C clang-llvm
+		wget https://github.com/ZyCromerZ/Clang/releases/download/21.0.0git-20250505-release/Clang-21.0.0git-20250505.tar.gz -O "Clang-21.0.0git-20250505.tar.gz"
+                tar -xf Clang-21.0.0git-20250505.tar.gz -C clang-llvm
 		git clone https://github.com/ZyCromerZ/aarch64-zyc-linux-gnu -b 14 gcc64 --depth=1
                 git clone https://github.com/ZyCromerZ/arm-zyc-linux-gnueabi -b 14 gcc32 --depth=1
 		GCC64_DIR=$KERNEL_DIR/gcc64
