@@ -24,7 +24,7 @@ KERNEL="$WORKDIR/kernel"
 
 # Cloning Sources
 git clone --single-branch --depth=1 https://github.com/Asyanx/sea_kernel_xiaomi_sm6225 -b luna-staging-backup $KERNEL && cd $KERNEL
-export LOCALVERSION=X/✨🦄
+export LOCALVERSION=X/✨🦖
 
 # Bail out if script fails
 set -e
@@ -55,7 +55,7 @@ BASEDIR="$(basename "$KERNEL_DIR")"
 
 # PATCH KERNELSU & RELEASE VERSION
 KSU=1
-RELEASE=T3x+
+RELEASE=T4x
 if [ $KSU = 1 ]
 then
 #	echo "CONFIG_KSU=y" >> arch/arm64/configs/vendor/"fog-perf_defconfig"
