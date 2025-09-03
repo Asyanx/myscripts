@@ -76,7 +76,7 @@ fi
 
 # Build Author
 # Take care, it should be a universal and most probably, case-sensitive
-AUTHOR="Asyanxx"
+AUTHOR="Asyanx"
 HOSTR="HOLY"
 
 # Architecture
