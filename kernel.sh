@@ -24,7 +24,7 @@ KERNEL="$WORKDIR/kernel"
 
 # Cloning Sources
 git clone --single-branch --depth=1 https://github.com/Asyanx/sea_kernel_xiaomi_sm6225 -b luna-staging-backup $KERNEL && cd $KERNEL
-export LOCALVERSION=X/✨🐊
+export LOCALVERSION=/✨🕊️
 
 # Bail out if script fails
 set -e
@@ -66,7 +66,7 @@ then
 fi
 
 # The name of the Kernel, to name the ZIP
-ZIPNAME="Luna"
+ZIPNAME="Sea"
 if [ $KSU = 1 ]
 then
    VER="$RELEASE-KSU"
