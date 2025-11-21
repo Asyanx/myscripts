@@ -23,7 +23,7 @@ WORKDIR="$(pwd)"
 KERNEL="$WORKDIR/kernel"
 
 # Cloning Sources
-git clone --single-branch --depth=1 https://github.com/Asyanx/sea_kernel_xiaomi_sm6225 -b luna-staging-backup $KERNEL && cd $KERNEL
+git clone --single-branch --depth=1 https://github.com/Asyanx/sea_kernel_xiaomi_sm6225 -b luna-staging $KERNEL && cd $KERNEL
 export LOCALVERSION=/✨🦖
 
 # Bail out if script fails
@@ -55,7 +55,7 @@ BASEDIR="$(basename "$KERNEL_DIR")"
 
 # PATCH KERNELSU & RELEASE VERSION
 KSU=1
-RELEASE=T5x
+RELEASE=T6
 if [ $KSU = 1 ]
 then
 	KSU_GIT_VERSION=$(cd KernelSU && git rev-list --count HEAD)
