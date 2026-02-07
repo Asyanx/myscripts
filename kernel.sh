@@ -23,7 +23,7 @@ WORKDIR="$(pwd)"
 KERNEL="$WORKDIR/kernel"
 
 # Cloning Sources
-git clone --single-branch --depth=1 https://github.com/Asyanx/sea_kernel_xiaomi_sm6225 -b luna-staging $KERNEL && cd $KERNEL
+git clone --single-branch --depth=1 https://github.com/Asyanx/android_kernel_xiaomi_mt6785 -b lineage-23.2 $KERNEL && cd $KERNEL
 export LOCALVERSION=⚓
 
 # Bail out if script fails
@@ -54,8 +54,8 @@ KERNEL_DIR="$(pwd)"
 BASEDIR="$(basename "$KERNEL_DIR")"
 
 # PATCH KERNELSU & RELEASE VERSION
-KSU=1
-RELEASE=v2
+KSU=0
+RELEASE=v1
 if [ $KSU = 1 ]
 then
 	KSU_GIT_VERSION=$(cd KernelSU && git rev-list --count HEAD)
@@ -63,7 +63,7 @@ then
 fi
 
 # The name of the Kernel, to name the ZIP
-ZIPNAME="SLCK"
+ZIPNAME="Sea"
 if [ $KSU = 1 ]
 then
    VER="$RELEASE-KSU"
@@ -80,14 +80,14 @@ HOSTR="HOLY"
 ARCH=arm64
 
 # The name of the device for which the kernel is built
-MODEL="Redmi 10C"
+MODEL="Redmi Note 10s"
 
 # The codename of the device
-DEVICE="fog"
+DEVICE="Rosemery"
 
 # The defconfig which should be used. Get it from config.gz from
 # your device or check source
-DEFCONFIG=vendor/fog-perf_defconfig
+DEFCONFIG=rosemary_defconfig
 
 # Specify compiler.
 # 'clang' or 'gcc'
@@ -116,7 +116,7 @@ fi
 DEF_REG=0
 
 # Files/artifacts
-FILES=Image.gz
+FILES=Image.gz-dtb
 
 # Build dtbo.img (select this only if your source has support to building dtbo.img)
 # 1 is YES | 0 is NO(default)
