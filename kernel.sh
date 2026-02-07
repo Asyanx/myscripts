@@ -55,7 +55,7 @@ BASEDIR="$(basename "$KERNEL_DIR")"
 
 # PATCH KERNELSU & RELEASE VERSION
 KSU=1
-RELEASE=v1
+RELEASE=v2
 
 # The name of the Kernel, to name the ZIP
 ZIPNAME="Sea"
