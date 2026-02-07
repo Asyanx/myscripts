@@ -56,11 +56,6 @@ BASEDIR="$(basename "$KERNEL_DIR")"
 # PATCH KERNELSU & RELEASE VERSION
 KSU=1
 RELEASE=v1
-if [ $KSU = 1 ]
-then
-	echo "CONFIG_KSU=y" >> arch/arm64/configs/"rosemary_defconfig"
-	echo "CONFIG_KSU_MANUAL_HOOK=y" >> arch/arm64/configs/"rosemary_defconfig"
-fi
 
 # The name of the Kernel, to name the ZIP
 ZIPNAME="Sea"
