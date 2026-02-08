@@ -24,7 +24,7 @@ KERNEL="$WORKDIR/kernel"
 
 # Cloning Sources
 git clone --single-branch --depth=1 https://github.com/Asyanx/android_kernel_xiaomi_mt6785 -b lineage-23.2 $KERNEL && cd $KERNEL
-export LOCALVERSION=⚓
+export LOCALVERSION=+⚓/Anchor
 
 # Bail out if script fails
 set -e
@@ -195,10 +195,8 @@ WAKTU=$(date +"%F-%S")
 		TC_DIR=$KERNEL_DIR/clang-llvm
   		export LLVM=1
 		export LLVM_IAS=1
-                export LD_LIBRARY_PATH=$TC_DIR/bin/:$GCC64_DIR/bin/:$GCC32_DIR/bin/:$LD_LIBRARY_PATH
-		MorePlusPlus="LD=$for64-ld LDGOLD=$for64-ld.gold HOSTLD=${TC_DIR}/bin/ld $MorePlusPlus"
-                MorePlusPlus="LD_COMPAT=${GCC32_DIR}/bin/$for32-ld $MorePlusPlus"
-	fi
+		MorePlusPlus="LD=${TC_DIR}/bin/ld.lld HOSTLD=${TC_DIR}/bin/ld.lld LD_COMPAT=${TC_DIR}/bin/ld.lld $MorePlusPlus"
+		fi
 	
 	msger -n "|| Cloning Anykernel ||"
 	git clone --depth=1 https://github.com/Asyanx/AnyKernel3 -b master AnyKernel3
@@ -295,6 +293,7 @@ build_kernel()
 	then
 		MAKE+=(
   			CC=clang \
+			LD_LIBRARY_PATH=$TC_DIR/bin/:$GCC64_DIR/bin/:$GCC32_DIR/bin/:$LD_LIBRARY_PATH \
 			CROSS_COMPILE=aarch64-zyc-linux-gnu- \
 			CROSS_COMPILE_ARM32=arm-zyc-linux-gnueabi- \
    			CLANG_TRIPLE=aarch64-linux-gnu- \
