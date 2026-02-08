@@ -24,7 +24,7 @@ KERNEL="$WORKDIR/kernel"
 
 # Cloning Sources
 git clone --single-branch --depth=1 https://github.com/Asyanx/android_kernel_xiaomi_mt6785 -b lineage-23.2 $KERNEL && cd $KERNEL
-export LOCALVERSION=+⚓/Anchor
+export LOCALVERSION=⚓/	Anchor
 
 # Bail out if script fails
 set -e
@@ -55,7 +55,7 @@ BASEDIR="$(basename "$KERNEL_DIR")"
 
 # PATCH KERNELSU & RELEASE VERSION
 KSU=1
-RELEASE=v1
+RELEASE=R1
 
 # The name of the Kernel, to name the ZIP
 ZIPNAME="Sea"
@@ -183,21 +183,15 @@ WAKTU=$(date +"%F-%S")
 	if [ $COMPILER = "clang" ]
 	then
                 mkdir clang-llvm
-		wget https://github.com/ZyCromerZ/Clang/releases/download/22.0.0git-20250805-release/Clang-22.0.0git-20250805.tar.gz -O "Clang-22.0.0git-20250805.tar.gz"
-                tar -xf Clang-22.0.0git-20250805.tar.gz -C clang-llvm
-		git clone https://github.com/ZyCromerZ/aarch64-zyc-linux-gnu -b 14 gcc64 --depth=1
-                git clone https://github.com/ZyCromerZ/arm-zyc-linux-gnueabi -b 14 gcc32 --depth=1
-		GCC64_DIR=$KERNEL_DIR/gcc64
-		GCC32_DIR=$KERNEL_DIR/gcc32
-  		for64=aarch64-zyc-linux-gnu
-  		for32=arm-zyc-linux-gnueabi
+		wget https://github.com/Impqxr/aosp_clang_ci/releases/download/13289611/clang-13289611-linux-x86.tar.xz -O "clang.tar.gz"
+                tar -xf clang.tar.gz -C clang-llvm
 		# Toolchain Directory defaults to clang-llvm
-		TC_DIR=$KERNEL_DIR/clang-llvm
+	    TC_DIR=$KERNEL_DIR/clang-llvm
+  		export LD_LIBRARY_PATH=$TC_DIR/bin/:$LD_LIBRARY_PATH
   		export LLVM=1
 		export LLVM_IAS=1
-		MorePlusPlus="LD=${TC_DIR}/bin/ld.lld HOSTLD=${TC_DIR}/bin/ld.lld LD_COMPAT=${TC_DIR}/bin/ld.lld $MorePlusPlus"
-		fi
-	
+	fi
+
 	msger -n "|| Cloning Anykernel ||"
 	git clone --depth=1 https://github.com/Asyanx/AnyKernel3 -b master AnyKernel3
 
@@ -219,7 +213,7 @@ exports()
 	if [ $COMPILER = "clang" ]
 	then
 		KBUILD_COMPILER_STRING=$("$TC_DIR"/bin/clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
-		PATH=$TC_DIR/bin/:$GCC64_DIR/bin/:$GCC32_DIR/bin/:/usr/bin:$PATH
+		PATH=$TC_DIR/bin/:$PATH
 	elif [ $COMPILER = "gcc" ]
 	then
 		KBUILD_COMPILER_STRING=$("$GCC64_DIR"/bin/aarch64-elf-gcc --version | head -n 1)
@@ -293,13 +287,16 @@ build_kernel()
 	then
 		MAKE+=(
   			CC=clang \
-			LD_LIBRARY_PATH=$TC_DIR/bin/:$GCC64_DIR/bin/:$GCC32_DIR/bin/:$LD_LIBRARY_PATH \
-			CROSS_COMPILE=aarch64-zyc-linux-gnu- \
-			CROSS_COMPILE_ARM32=arm-zyc-linux-gnueabi- \
-   			CLANG_TRIPLE=aarch64-linux-gnu- \
-        		HOSTCC=gcc \
-	  		HOSTCXX=g++ ${MorePlusPlus}
-     )  
+			LD=ld.lld \
+			AS=llvm-as \
+			AR=llvm-ar \
+			NM=llvm-nm \
+			OBJCOPY=llvm-objcopy \
+			OBJDUMP=llvm-objdump \
+			STRIP=llvm-strip \
+			CROSS_COMPILE=aarch64-linux-gnu- \
+			CROSS_COMPILE_ARM32=arm-linux-gnueabi-
+     ) 
 	elif [ $COMPILER = "gcc" ]
 	then
 		MAKE+=(
