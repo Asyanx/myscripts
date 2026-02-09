@@ -23,7 +23,7 @@ WORKDIR="$(pwd)"
 KERNEL="$WORKDIR/kernel"
 
 # Cloning Sources
-git clone --single-branch --depth=1 https://github.com/Asyanx/android_kernel_xiaomi_mt6785 -b lineage-23.2 $KERNEL && cd $KERNEL
+git clone --single-branch --depth=1 https://github.com/Asyanx/android_kernel_motorola_sm6375 -b lineage-23.2 $KERNEL && cd $KERNEL
 export LOCALVERSION=+🦖
 
 # Bail out if script fails
@@ -54,8 +54,8 @@ KERNEL_DIR="$(pwd)"
 BASEDIR="$(basename "$KERNEL_DIR")"
 
 # PATCH KERNELSU & RELEASE VERSION
-KSU=1
-RELEASE=R2
+KSU=0
+RELEASE=R1
 
 # The name of the Kernel, to name the ZIP
 ZIPNAME="Sea"
@@ -75,21 +75,21 @@ HOSTR="holy"
 ARCH=arm64
 
 # The name of the device for which the kernel is built
-MODEL="Redmi Note 10s"
+MODEL="Motorola G45"
 
 # The codename of the device
-DEVICE="Rosemery"
+DEVICE="fogos"
 
 # The defconfig which should be used. Get it from config.gz from
 # your device or check source
-DEFCONFIG=rosemary_defconfig
+DEFCONFIG=vendor/fogos_defconfig
 
 # Specify compiler.
 # 'clang' or 'gcc'
 COMPILER=clang
 
 # Build modules. 0 = NO | 1 = YES
-MODULES=0
+MODULES=1
 
 # Specify linker.
 # 'ld.lld'(default)
@@ -111,7 +111,7 @@ fi
 DEF_REG=0
 
 # Files/artifacts
-FILES=Image.gz-dtb
+FILES=Image
 
 # Build dtbo.img (select this only if your source has support to building dtbo.img)
 # 1 is YES | 0 is NO(default)
@@ -193,7 +193,7 @@ WAKTU=$(date +"%F-%S")
 	fi
 
 	msger -n "|| Cloning Anykernel ||"
-	git clone --depth=1 https://github.com/Asyanx/AnyKernel3 -b master AnyKernel3
+	git clone --depth=1 https://github.com/MoeKernel/AnyKernel3 -b fogos AnyKernel3
 
 	if [ $BUILD_DTBO = 1 ]
 	then
@@ -272,7 +272,7 @@ build_kernel()
 		tg_post_msg "<b>Sea CI Build Triggered</b>%0A<b>Docker OS: </b><code>$DISTRO</code>%0A<b>Kernel Version : </b><code>$KERVER</code>%0A<b>Date : </b><code>$(TZ=Asia/Jakarta date)</code>%0A<b>Device : </b><code>$MODEL [$DEVICE]</code>%0A<b>Host Core Count : </b><code>$PROCS</code>%0A<b>Compiler Used : </b><code>$KBUILD_COMPILER_STRING</code>%0A<b>NON KernelSU:<code>No KSU</code>%0A</b><b>Top Commit : </b><code>$COMMIT_HEAD</code>"
     	fi
 
-	make O=out $DEFCONFIG
+	make O=out $DEFCONFIG moto.config
 	if [ $DEF_REG = 1 ]
 	then
 		cp .config arch/arm64/configs/$DEFCONFIG
@@ -326,7 +326,7 @@ build_kernel()
 	    make -j"$PROCS" O=out \
 		 "${MAKE[@]}" modules_prepare
 	    make -j"$PROCS" O=out \
-		 "${MAKE[@]}" modules INSTALL_MOD_PATH="$KERNEL_DIR"/out/modules
+		 "${MAKE[@]}" modules INSTALL_MOD_PATH="$KERNEL_DIR"/out/modules INSTALL_MOD_STRIP=1
 	    make -j"$PROCS" O=out \
 		 "${MAKE[@]}" modules_install INSTALL_MOD_PATH="$KERNEL_DIR"/out/modules
 	    find "$KERNEL_DIR"/out/modules -type f -iname '*.ko' -exec cp {} AnyKernel3/modules/system/lib/modules/ \;
@@ -361,6 +361,11 @@ gen_zip()
 {
 	msger -n "|| Zipping into a flashable zip ||"
 	mv "$KERNEL_DIR"/out/arch/arm64/boot/$FILES AnyKernel3/$FILES
+	mv "$KERNEL_DIR"/out/.config AnyKernel3/config
+	mv "$KERNEL_DIR"/out/arch/arm64/boot/dtb.img AnyKernel3/dtb
+	mv "$KERNEL_DIR"/out/arch/arm64/boot/dtbo.img AnyKernel3/dtbo.img
+	mv "$KERNEL_DIR"/out/modules/lib/modules/5.4*/modules.{alias,dep,softdep} AnyKernel3/modules/system/lib/modules/
+	mv "$KERNEL_DIR"/out/modules/lib/modules/5.4*/modules.order AnyKernel3/modules/system/lib/modules/modules.load
 	if [ $BUILD_DTBO = 1 ]
 	then
 		mv "$KERNEL_DIR"/out/arch/arm64/boot/dtbo.img AnyKernel3/dtbo.img
