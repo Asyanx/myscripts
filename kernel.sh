@@ -182,10 +182,8 @@ WAKTU=$(date +"%F-%S")
 
 	if [ $COMPILER = "clang" ]
 	then
-                mkdir clang-llvm
-		wget https://github.com/Impqxr/aosp_clang_ci/releases/download/13289611/clang-13289611-linux-x86.tar.xz -O "clang.tar.gz"
-                tar -xf clang.tar.gz -C clang-llvm
-		# Toolchain Directory defaults to clang-llvm
+		git clone --depth=1 https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r547379.git ${TC_DIR}
+        # Toolchain Directory defaults to clang-llvm
 	    TC_DIR=$KERNEL_DIR/clang-llvm
   		export LD_LIBRARY_PATH=$TC_DIR/bin/:$LD_LIBRARY_PATH
   		export LLVM=1
