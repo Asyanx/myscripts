@@ -97,7 +97,7 @@ CLANG_VERSION="clang-20.0.0"
 TC_DIR=$KERNEL_DIR/clang-llvm
 
 # Build modules. 0 = NO | 1 = YES
-MODULES=1
+MODULES=0
 
 # Specify linker.
 # 'ld.lld'(default)
@@ -353,8 +353,8 @@ gen_zip()
 	cp "$KERNEL_DIR"/out/.config AnyKernel3/config
 	cp "$KERNEL_DIR"/out/arch/arm64/boot/dtb.img AnyKernel3/dtb
 	cp "$KERNEL_DIR"/out/arch/arm64/boot/dtbo.img AnyKernel3/dtbo.img
-	cp "$KERNEL_DIR"/out/modules/lib/modules/5.4*/modules.{alias,dep,softdep} AnyKernel3/modules/system/lib/modules/
-	cp "$KERNEL_DIR"/out/modules/lib/modules/5.4*/modules.order AnyKernel3/modules/system/lib/modules/modules.load
+#	cp "$KERNEL_DIR"/out/modules/lib/modules/5.4*/modules.{alias,dep,softdep} AnyKernel3/modules/system/lib/modules/
+#	cp "$KERNEL_DIR"/out/modules/lib/modules/5.4*/modules.order AnyKernel3/modules/system/lib/modules/modules.load
 	if [ $BUILD_DTBO = 1 ]
 	then
 		mv "$KERNEL_DIR"/out/arch/arm64/boot/dtbo.img AnyKernel3/dtbo.img
