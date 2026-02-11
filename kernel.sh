@@ -88,6 +88,9 @@ DEFCONFIG=rosemary_defconfig
 # 'clang' or 'gcc'
 COMPILER=clang
 
+# Toolchain Directory defaults to clang-llvm
+TC_DIR=$KERNEL_DIR/clang-llvm
+
 # Build modules. 0 = NO | 1 = YES
 MODULES=0
 
@@ -183,8 +186,6 @@ WAKTU=$(date +"%F-%S")
 	if [ $COMPILER = "clang" ]
 	then
 		git clone --depth=1 https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r547379.git ${TC_DIR}
-        # Toolchain Directory defaults to clang-llvm
-	    TC_DIR=$KERNEL_DIR/clang-llvm
   		export LD_LIBRARY_PATH=$TC_DIR/bin/:$LD_LIBRARY_PATH
   		export LLVM=1
 		export LLVM_IAS=1
