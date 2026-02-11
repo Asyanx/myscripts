@@ -86,7 +86,15 @@ DEFCONFIG=vendor/fogos_defconfig
 
 # Specify compiler.
 # 'clang' or 'gcc'
-COMPILER=clang
+COMPILER=clang		
+
+# Toolchain Directory defaults to gcc
+GCC64_DIR=$KERNEL_DIR/gcc64
+GCC32_DIR=$KERNEL_DIR/gcc32		
+
+# Toolchain Directory defaults to clang-llvm
+CLANG_VERSION="clang-20.0.0"
+TC_DIR=$KERNEL_DIR/clang-llvm
 
 # Build modules. 0 = NO | 1 = YES
 MODULES=1
@@ -106,9 +114,6 @@ then
 	CHATID="-1001910249307"
 	TOKEN="5501360993:AAFLnvOrkUpsFJktYu-snmimKNoGk7_WVw8"
 fi
-
-# Generate a full DEFCONFIG prior building. 1 is YES | 0 is NO(default)
-DEF_REG=0
 
 # Files/artifacts
 FILES=Image
@@ -176,20 +181,13 @@ WAKTU=$(date +"%F-%S")
 		msger -n "|| Cloning GCC 9.3.0 baremetal ||"
 		git clone --depth=1 https://github.com/mvaisakh/gcc-arm64.git gcc64
 		git clone --depth=1 https://github.com/arter97/arm32-gcc.git gcc32
-		GCC64_DIR=$KERNEL_DIR/gcc64
-		GCC32_DIR=$KERNEL_DIR/gcc32
 	fi
 
-	if [ $COMPILER = "clang" ]
+	 [ $ifCOMPILER = "clang" ]
 	then
-                mkdir clang-llvm
-		wget https://github.com/Impqxr/aosp_clang_ci/releases/download/13289611/clang-13289611-linux-x86.tar.xz -O "clang.tar.gz"
-                tar -xf clang.tar.gz -C clang-llvm
-		# Toolchain Directory defaults to clang-llvm
-	    TC_DIR=$KERNEL_DIR/clang-llvm
-  		export LD_LIBRARY_PATH=$TC_DIR/bin/:$LD_LIBRARY_PATH
-  		export LLVM=1
-		export LLVM_IAS=1
+		git clone --depth=1 https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r547379.git ${TC_DIR}
+		export LLVM_DIR=$KERNEL_DIR/clang-llvm/bin
+		export LLVM=1
 	fi
 
 	msger -n "|| Cloning Anykernel ||"
@@ -271,31 +269,27 @@ build_kernel()
 	else
 		tg_post_msg "<b>Sea CI Build Triggered</b>%0A<b>Docker OS: </b><code>$DISTRO</code>%0A<b>Kernel Version : </b><code>$KERVER</code>%0A<b>Date : </b><code>$(TZ=Asia/Jakarta date)</code>%0A<b>Device : </b><code>$MODEL [$DEVICE]</code>%0A<b>Host Core Count : </b><code>$PROCS</code>%0A<b>Compiler Used : </b><code>$KBUILD_COMPILER_STRING</code>%0A<b>NON KernelSU:<code>No KSU</code>%0A</b><b>Top Commit : </b><code>$COMMIT_HEAD</code>"
     	fi
-
+	
 	make O=out $DEFCONFIG moto.config
-	if [ $DEF_REG = 1 ]
-	then
-		cp .config arch/arm64/configs/$DEFCONFIG
-		git add arch/arm64/configs/$DEFCONFIG
-		git commit -m "$DEFCONFIG: Regenerate
-
-						This is an auto-generated commit"
-	fi
- 
 	BUILD_START=$(date +"%s")
 	if [ $COMPILER = "clang" ]
 	then
 		MAKE+=(
   			CC=clang \
-			LD=ld.lld \
-			AS=llvm-as \
-			AR=llvm-ar \
-			NM=llvm-nm \
-			OBJCOPY=llvm-objcopy \
-			OBJDUMP=llvm-objdump \
-			STRIP=llvm-strip \
-			CROSS_COMPILE=aarch64-linux-gnu- \
-			CROSS_COMPILE_ARM32=arm-linux-gnueabi-
+			LD=${LLVM_DIR}/ld.lld \
+			ARCH=arm64 \
+			AS=${LLVM_DIR}/llvm-as \
+			AR=${LLVM_DIR}/llvm-ar \
+			NM=${LLVM_DIR}/llvm-nm \
+			OBJCOPY=${LLVM_DIR}/llvm-objcopy \
+			OBJDUMP=${LLVM_DIR}/llvm-objdump \
+			READELF=${LLVM_DIR}/llvm-readelf \
+			OBJSIZE=${LLVM_DIR}/llvm-size \
+			STRIP=${LLVM_DIR}/llvm-strip \
+			LLVM_AR=${LLVM_DIR}/llvm-ar \
+			LLVM_DIS=${LLVM_DIR}/llvm-dis \
+			LLVM_NM=${LLVM_DIR}/llvm-nm \
+			LLVM=1
      ) 
 	elif [ $COMPILER = "gcc" ]
 	then
@@ -323,12 +317,7 @@ build_kernel()
 	if [ $MODULES = "1" ]
 	then
 	    msger -n "|| Started Compiling Modules ||"
-	    make -j"$PROCS" O=out \
-		 "${MAKE[@]}" modules_prepare
-	    make -j"$PROCS" O=out \
-		 "${MAKE[@]}" modules INSTALL_MOD_PATH="$KERNEL_DIR"/out/modules INSTALL_MOD_STRIP=1
-	    make -j"$PROCS" O=out \
-		 "${MAKE[@]}" modules_install INSTALL_MOD_PATH="$KERNEL_DIR"/out/modules
+	    make -j"$PROCS" O=out INSTALL_MOD_PATH="$KERNEL_DIR"/out/modules INSTALL_MOD_STRIP=1 modules_install
 	    find "$KERNEL_DIR"/out/modules -type f -iname '*.ko' -exec cp {} AnyKernel3/modules/system/lib/modules/ \;
 	fi
 
@@ -360,12 +349,12 @@ build_kernel()
 gen_zip()
 {
 	msger -n "|| Zipping into a flashable zip ||"
-	mv "$KERNEL_DIR"/out/arch/arm64/boot/$FILES AnyKernel3/$FILES
-	mv "$KERNEL_DIR"/out/.config AnyKernel3/config
-	mv "$KERNEL_DIR"/out/arch/arm64/boot/dtb.img AnyKernel3/dtb
-	mv "$KERNEL_DIR"/out/arch/arm64/boot/dtbo.img AnyKernel3/dtbo.img
-	mv "$KERNEL_DIR"/out/modules/lib/modules/5.4*/modules.{alias,dep,softdep} AnyKernel3/modules/system/lib/modules/
-	mv "$KERNEL_DIR"/out/modules/lib/modules/5.4*/modules.order AnyKernel3/modules/system/lib/modules/modules.load
+	cp "$KERNEL_DIR"/out/arch/arm64/boot/$FILES AnyKernel3/$FILES
+	cp "$KERNEL_DIR"/out/.config AnyKernel3/config
+	cp "$KERNEL_DIR"/out/arch/arm64/boot/dtb.img AnyKernel3/dtb
+	cp "$KERNEL_DIR"/out/arch/arm64/boot/dtbo.img AnyKernel3/dtbo.img
+	cp "$KERNEL_DIR"/out/modules/lib/modules/5.4*/modules.{alias,dep,softdep} AnyKernel3/modules/system/lib/modules/
+	cp "$KERNEL_DIR"/out/modules/lib/modules/5.4*/modules.order AnyKernel3/modules/system/lib/modules/modules.load
 	if [ $BUILD_DTBO = 1 ]
 	then
 		mv "$KERNEL_DIR"/out/arch/arm64/boot/dtbo.img AnyKernel3/dtbo.img
