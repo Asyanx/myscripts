@@ -181,9 +181,9 @@ WAKTU=$(date +"%F-%S")
 		msger -n "|| Cloning GCC 9.3.0 baremetal ||"
 		git clone --depth=1 https://github.com/mvaisakh/gcc-arm64.git gcc64
 		git clone --depth=1 https://github.com/arter97/arm32-gcc.git gcc32
-	fi
-
-	 [ $ifCOMPILER = "clang" ]
+	fi 
+	
+	if [ $COMPILER = "clang" ]
 	then
 		git clone --depth=1 https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r547379.git ${TC_DIR}
 		export LLVM_DIR=$KERNEL_DIR/clang-llvm/bin
