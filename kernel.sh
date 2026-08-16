@@ -1,3 +1,212 @@
+kernel.sh
+File
+kernel_build.sh
+File
+punya saya kernel.sh dan punya yang mau sayab tabah fitur mencontoh dari kernel_buid.sh karena bisa build 2 tipe bahkan lebih 1 kali jalankan script nya
+
+Bisa. Dan menurut saya justru lebih bagus kalau Telegram memberi notifikasi untuk setiap defconfig, jadi kamu langsung tahu sedang build yang mana.
+
+Misalnya kamu punya:
+
+DEFCONFIGS=(
+    "whyred_defconfig"
+    "whyred_perf_defconfig"
+)
+
+Telegram akan menerima kira-kira:
+
+🚀 BUILD STARTED
+
+
+Defconfig : whyred_defconfig
+Device    : Redmi Note 5/PRO [Whyred]
+Compiler  : clang
+KernelSU  : No
+
+Setelah selesai:
+
+✅ BUILD SUCCESS
+
+
+Defconfig : whyred_defconfig
+Build time: 12 minute(s) 35 seconds
+Output    : Sea-Whyred-whyred-R1-....
+
+Lalu build kedua:
+
+🚀 BUILD STARTED
+
+
+Defconfig : whyred_perf_defconfig
+Device    : Redmi Note 5/PRO [Whyred]
+Compiler  : clang
+KernelSU  : No
+
+dan setelah selesai:
+
+✅ BUILD SUCCESS
+
+
+Defconfig : whyred_perf_defconfig
+Build time: 13 minute(s) 02 seconds
+Output    : Sea-Whyred-whyred_perf-R1-....
+Yang perlu diubah
+
+Sebenarnya versi koreksi tadi sudah saya masukkan nama DEFCONFIG ke notifikasi awal:
+
+Defconfig : $DEFCONFIG
+
+Jadi Telegram sudah bisa membedakan build pertama dan kedua. Bagian ini memang ada di versi koreksi yang saya buat.
+
+Tetapi saya setuju dengan maksud kamu: lebih jelas kalau dibuat notifikasi 2 tahap untuk SETIAP defconfig:
+
+1. Saat mulai build
+
+🚀 Build Started
+Defconfig: whyred_defconfig
+
+2. Saat build selesai
+
+✅ Build Success
+Defconfig: whyred_defconfig
+Time: ...
+
+Kalau gagal:
+
+❌ Build Failed
+Defconfig: whyred_defconfig
+Time: ...
+
+Dan setelah semua defconfig selesai, bisa ditambah 1 notifikasi terakhir:
+
+🏁 ALL BUILD COMPLETED
+
+
+✅ whyred_defconfig
+✅ whyred_perf_defconfig
+
+
+Total: 2 defconfig
+
+Jadi kalau ada 3 defconfig, Telegram akan memberi tahu start + hasil masing-masing, kemudian satu ringkasan akhir.
+
+Saya sarankan model ini, karena kalau build kedua sedang berjalan kamu tidak perlu menebak apakah script masih mengerjakan whyred_defconfig atau sudah pindah ke whyred_perf_defconfig.
+
+hasil
+
+Sudah. Saya masukkan notifikasi Telegram per defconfig ke script yang sudah dikoreksi.
+
+Sekarang alurnya seperti ini:
+
+whyred_defconfig
+   ↓
+🚀 BUILD STARTED
+   ↓
+compile
+   ↓
+📦 ZIP dikirim Telegram
+   ↓
+✅ BUILD SUCCESS
+
+
+whyred_perf_defconfig
+   ↓
+🚀 BUILD STARTED
+   ↓
+compile
+   ↓
+📦 ZIP dikirim Telegram
+   ↓
+✅ BUILD SUCCESS
+
+
+🏁 ALL BUILD COMPLETED
+
+Kalau gagal:
+
+❌ BUILD FAILED
+Defconfig: whyred_defconfig
+
+Jadi kamu selalu tahu Telegram sedang mengerjakan defconfig yang mana.
+
+Saya juga sudah cek sintaks script dengan bash -n dan hasilnya PASS.
+
+Download kernel_multi_defconfig_telegram.sh
+
+Notifikasi akhirnya juga menampilkan jumlah defconfig dan daftar yang berhasil:
+
+🏁 ALL BUILD COMPLETED
+Total Defconfig: 2
+
+
+✅ whyred_defconfig
+✅ whyred_perf_defconfig
+
+Dan pengiriman ZIP ke Telegram tetap berjalan, bukan diganti dengan notifikasi saja. 
+
+kernel_multi_defconfig_telegram.sh
+Kode
+clean out juga sudah kamu tambahkan?
+
+Iya, sudah ada clean, tetapi saya luruskan detailnya supaya tidak salah pemahaman.
+
+Di script terakhir, setiap kali masuk ke build_kernel "$CURRENT_DEFCONFIG", ada:
+
+if [ "$INCREMENTAL" = 0 ]
+then
+    msger -n "|| Cleaning kernel source ||"
+    make mrproper
+fi
+
+Dengan:
+
+INCREMENTAL=0
+
+maka setiap defconfig akan melakukan clean sebelum build.
+
+Selain itu, setiap defconfig juga punya out sendiri:
+
+kernel_builds/
+├── whyred/
+│   └── out/
+│
+└── whyred_perf/
+    └── out/
+
+Jadi tidak seperti:
+
+out/
+   ↓ build 1
+   ↓ rm -rf
+   ↓ build 2
+
+melainkan:
+
+Build 1
+├── make mrproper
+├── kernel_builds/whyred/out/
+└── ZIP 1
+
+
+Build 2
+├── make mrproper
+├── kernel_builds/whyred_perf/out/
+└── ZIP 2
+
+Tapi ada satu hal penting: make mrproper membersihkan source tree utama, sedangkan BUILD_OUT masing-masing memang sudah dipisahkan. Jadi keduanya tidak bertabrakan.
+
+Kalau tujuanmu adalah setiap build benar-benar fresh 100%, saya bahkan menyarankan menambahkan:
+
+rm -rf "$BUILD_DIR"
+mkdir -p "$BUILD_DIR"
+
+sebelum masing-masing build—dan itu sudah ada di script terakhir saya.
+
+Jadi jawabannya: iya, clean sudah ditambahkan, dan out antar-defconfig juga sudah dipisahkan.
+
+Perpustakaan
+/
+kernel_multi_defconfig_telegram.sh
 #!/bin/bash
 # shellcheck disable=SC2154
 
@@ -28,6 +237,7 @@ export LOCALVERSION=+🦖
 
 # Bail out if script fails
 set -e
+set -o pipefail
 
 # Function to show an informational message
 msger()
@@ -82,7 +292,16 @@ DEVICE="Whyred"
 
 # The defconfig which should be used. Get it from config.gz from
 # your device or check source
-DEFCONFIG=whyred_defconfig
+# Defconfig yang akan dibuild dalam satu kali eksekusi.
+# Tambahkan sebanyak yang diperlukan.
+DEFCONFIGS=(
+    "whyred_defconfig"
+    "whyred_perf_defconfig"
+)
+
+# Output terpisah untuk setiap defconfig agar hasil build tidak saling bertabrakan.
+BUILDS_DIR="$KERNEL_DIR/kernel_builds"
+
 
 # Specify compiler.
 # 'clang' or 'gcc'
@@ -255,93 +474,186 @@ tg_post_build()
 
 build_kernel()
 {
-	if [ $INCREMENTAL = 0 ]
+	DEFCONFIG="$1"
+	BUILD_NAME="${DEFCONFIG%_defconfig}"
+	BUILD_DIR="$BUILDS_DIR/$BUILD_NAME"
+	BUILD_OUT="$BUILD_DIR/out"
+	BUILD_ANYKERNEL="$BUILD_DIR/AnyKernel3"
+	BUILD_LOG="$BUILD_DIR/build.log"
+	WAKTU=$(date +"%Y%m%d-%H%M%S")
+	BUILD_ZIP="$BUILD_DIR/$ZIPNAME-$DEVICE-$BUILD_NAME-$VER-$WAKTU.zip"
+
+	msger -n "|| Preparing $DEFCONFIG ||"
+
+	if [ "$PTTG" = 1 ]
 	then
-		msger -n "|| Cleaning Sources ||"
-		make mrproper && rm -rf out
+		tg_post_msg "<b>🚀 BUILD STARTED</b>%0A<b>Defconfig : </b><code>$DEFCONFIG</code>%0A<b>Device : </b><code>$MODEL [$DEVICE]</code>%0A<b>Compiler : </b><code>$COMPILER</code>%0A<b>KernelSU : </b><code>$([ "$KSU" = 1 ] && echo Yes || echo No)</code>"
 	fi
+
+	# Each defconfig gets its own output and AnyKernel directory.
+	rm -rf "$BUILD_DIR"
+	mkdir -p "$BUILD_DIR"
+
+	if [ "$INCREMENTAL" = 0 ]
+	then
+		msger -n "|| Cleaning kernel source ||"
+		make mrproper
+	fi
+
+	# Make a fresh AnyKernel working tree for this defconfig.
+	cp -a "$KERNEL_DIR/AnyKernel3" "$BUILD_ANYKERNEL"
+
+	# Reset build-specific variables so consecutive builds do not inherit state.
+	MAKE=()
 
 	if [ "$KSU" = 1 ]
- 	then
-		tg_post_msg "<b>Sea CI Build Triggered</b>%0A<b>Docker OS: </b><code>$DISTRO</code>%0A<b>Kernel Version : </b><code>$KERVER</code>%0A<b>Date : </b><code>$(TZ=Asia/Jakarta date)</code>%0A<b>Device : </b><code>$MODEL [$DEVICE]</code>%0A<b>Host Core Count : </b><code>$PROCS</code>%0A<b>Compiler Used : </b><code>$KBUILD_COMPILER_STRING</code>%0A<b>KernelSU: </b><code>Yes This KSU</code>%0A<b>Top Commit : </b><code>$COMMIT_HEAD</code>"
+	then
+		tg_post_msg "<b>Sea CI Build Triggered</b>%0A<b>Defconfig : </b><code>$DEFCONFIG</code>%0A<b>Docker OS : </b><code>$DISTRO</code>%0A<b>Kernel Version : </b><code>$KERVER</code>%0A<b>Date : </b><code>$(TZ=Asia/Jakarta date)</code>%0A<b>Device : </b><code>$MODEL [$DEVICE]</code>%0A<b>Host Core Count : </b><code>$PROCS</code>%0A<b>Compiler Used : </b><code>$KBUILD_COMPILER_STRING</code>%0A<b>KernelSU : </b><code>Yes</code>%0A<b>Top Commit : </b><code>$COMMIT_HEAD</code>"
 	else
-		tg_post_msg "<b>Sea CI Build Triggered</b>%0A<b>Docker OS: </b><code>$DISTRO</code>%0A<b>Kernel Version : </b><code>$KERVER</code>%0A<b>Date : </b><code>$(TZ=Asia/Jakarta date)</code>%0A<b>Device : </b><code>$MODEL [$DEVICE]</code>%0A<b>Host Core Count : </b><code>$PROCS</code>%0A<b>Compiler Used : </b><code>$KBUILD_COMPILER_STRING</code>%0A<b>NON KernelSU:<code>No KSU</code>%0A</b><b>Top Commit : </b><code>$COMMIT_HEAD</code>"
-    	fi
-
-	make O=out $DEFCONFIG
-	if [ $DEF_REG = 1 ]
-	then
-		cp .config arch/arm64/configs/$DEFCONFIG
-		git add arch/arm64/configs/$DEFCONFIG
-		git commit -m "$DEFCONFIG: Regenerate
-
-						This is an auto-generated commit"
+		tg_post_msg "<b>Sea CI Build Triggered</b>%0A<b>Defconfig : </b><code>$DEFCONFIG</code>%0A<b>Docker OS : </b><code>$DISTRO</code>%0A<b>Kernel Version : </b><code>$KERVER</code>%0A<b>Date : </b><code>$(TZ=Asia/Jakarta date)</code>%0A<b>Device : </b><code>$MODEL [$DEVICE]</code>%0A<b>Host Core Count : </b><code>$PROCS</code>%0A<b>Compiler Used : </b><code>$KBUILD_COMPILER_STRING</code>%0A<b>KernelSU : </b><code>No</code>%0A<b>Top Commit : </b><code>$COMMIT_HEAD</code>"
 	fi
- 
+
+	msger -n "|| Applying $DEFCONFIG ||"
+	make O="$BUILD_OUT" "$DEFCONFIG"
+
+	if [ "$DEF_REG" = 1 ]
+	then
+		cp "$BUILD_OUT/.config" "arch/arm64/configs/$DEFCONFIG"
+		git add "arch/arm64/configs/$DEFCONFIG"
+		git commit -m "$DEFCONFIG: Regenerate This is an auto-generated commit"
+	fi
+
 	BUILD_START=$(date +"%s")
-	if [ $COMPILER = "clang" ]
+
+	if [ "$COMPILER" = "clang" ]
 	then
 		MAKE+=(
-  			CC=clang \
-			CROSS_COMPILE=aarch64-linux-gnu- \
+			CC=clang
+			CROSS_COMPILE=aarch64-linux-gnu-
 			CROSS_COMPILE_ARM32=arm-linux-gnueabi-
-     ) 
-	elif [ $COMPILER = "gcc" ]
+		)
+	elif [ "$COMPILER" = "gcc" ]
 	then
 		MAKE+=(
-			CROSS_COMPILE_ARM32=arm-eabi- \
-			CROSS_COMPILE=aarch64-elf- \
-			AR=aarch64-elf-ar \
-			OBJDUMP=aarch64-elf-objdump \
-			STRIP=aarch64-elf-strip \
-			NM=aarch64-elf-nm \
-			OBJCOPY=aarch64-elf-objcopy \
+			CROSS_COMPILE_ARM32=arm-eabi-
+			CROSS_COMPILE=aarch64-elf-
+			AR=aarch64-elf-ar
+			OBJDUMP=aarch64-elf-objdump
+			STRIP=aarch64-elf-strip
+			NM=aarch64-elf-nm
+			OBJCOPY=aarch64-elf-objcopy
 			LD=aarch64-elf-$LINKER
 		)
 	fi
 
-	if [ $SILENCE = "1" ]
+	if [ "$SILENCE" = 1 ]
 	then
 		MAKE+=( -s )
 	fi
 
-	msger -n "|| Started Compilation ||"
-	make -kj"$PROCS" O=out \
-		V=$VERBOSE \
-		"${MAKE[@]}" 2>&1 | tee error.log
-	if [ $MODULES = "1" ]
+	msger -n "|| Started Compilation: $DEFCONFIG ||"
+	make -k -j"$PROCS" O="$BUILD_OUT" \
+		V="$VERBOSE" \
+		"${MAKE[@]}" 2>&1 | tee "$BUILD_LOG"
+
+	if [ "$MODULES" = 1 ]
 	then
-	    msger -n "|| Started Compiling Modules ||"
-	    make -j"$PROCS" O=out \
-		 "${MAKE[@]}" modules_prepare
-	    make -j"$PROCS" O=out \
-		 "${MAKE[@]}" modules INSTALL_MOD_PATH="$KERNEL_DIR"/out/modules
-	    make -j"$PROCS" O=out \
-		 "${MAKE[@]}" modules_install INSTALL_MOD_PATH="$KERNEL_DIR"/out/modules
-	    find "$KERNEL_DIR"/out/modules -type f -iname '*.ko' -exec cp {} AnyKernel3/modules/system/lib/modules/ \;
+		msger -n "|| Started Compiling Modules: $DEFCONFIG ||"
+		make -j"$PROCS" O="$BUILD_OUT" "${MAKE[@]}" modules_prepare
+		make -j"$PROCS" O="$BUILD_OUT" "${MAKE[@]}" modules INSTALL_MOD_PATH="$BUILD_OUT/modules"
+		make -j"$PROCS" O="$BUILD_OUT" "${MAKE[@]}" modules_install INSTALL_MOD_PATH="$BUILD_OUT/modules"
+
+		if [ -d "$BUILD_OUT/modules" ] && [ -d "$BUILD_ANYKERNEL/modules/system/lib/modules" ]
+		then
+			find "$BUILD_OUT/modules" -type f -iname '*.ko' \
+				-exec cp {} "$BUILD_ANYKERNEL/modules/system/lib/modules/" \;
+		fi
 	fi
 
-		BUILD_END=$(date +"%s")
-		DIFF=$((BUILD_END - BUILD_START))
+	BUILD_END=$(date +"%s")
+	DIFF=$((BUILD_END - BUILD_START))
 
-		if [ -f "$KERNEL_DIR"/out/arch/arm64/boot/$FILES ]
+	if [ -f "$BUILD_OUT/arch/arm64/boot/$FILES" ]
+	then
+		msger -n "|| $DEFCONFIG compiled successfully ||"
+
+		if [ "$BUILD_DTBO" = 1 ]
 		then
-			msger -n "|| Kernel successfully compiled ||"
-			if [ $BUILD_DTBO = 1 ]
-			then
-				msger -n "|| Building DTBO ||"
-				tg_post_msg "<code>Building DTBO..</code>"
-				python2 "$KERNEL_DIR/scripts/ufdt/libufdt/utils/src/mkdtboimg.py" \
-					create "$KERNEL_DIR/out/arch/arm64/boot/dtbo.img" --page_size=4096 "$KERNEL_DIR/out/arch/arm64/boot/dts/$DTBO_PATH"
-			fi
-				gen_zip
-			else
-			if [ "$PTTG" = 1 ]
- 			then
-				tg_post_build "error.log" "*Build failed to compile after $((DIFF / 60)) minute(s) and $((DIFF % 60)) seconds*"
-			fi
+			msger -n "|| Building DTBO: $DEFCONFIG ||"
+			tg_post_msg "<code>Building DTBO for $DEFCONFIG..</code>"
+
+			python2 "$KERNEL_DIR/scripts/ufdt/libufdt/utils/src/mkdtboimg.py" \
+				create "$BUILD_OUT/arch/arm64/boot/dtbo.img" \
+				--page_size=4096 \
+				"$BUILD_OUT/arch/arm64/boot/dts/$DTBO_PATH"
 		fi
 
+		gen_zip "$DEFCONFIG"
+		return 0
+	else
+		msger -e "Build failed: $DEFCONFIG"
+		if [ "$PTTG" = 1 ] && [ -f "$BUILD_LOG" ]
+		then
+			tg_post_build "$BUILD_LOG" "*$DEFCONFIG failed after $((DIFF / 60)) minute(s) and $((DIFF % 60)) seconds*"
+			tg_post_msg "<b>❌ BUILD FAILED</b>%0A<b>Defconfig : </b><code>$DEFCONFIG</code>%0A<b>Build Time : </b><code>$((DIFF / 60)) minute(s) $((DIFF % 60)) seconds</code>"
+		fi
+		return 1
+	fi
+}
+
+##--------------------------------------------------------------##
+
+gen_zip()
+{
+	DEFCONFIG="$1"
+	BUILD_NAME="${DEFCONFIG%_defconfig}"
+	BUILD_DIR="$BUILDS_DIR/$BUILD_NAME"
+	BUILD_OUT="$BUILD_DIR/out"
+	BUILD_ANYKERNEL="$BUILD_DIR/AnyKernel3"
+	WAKTU=$(date +"%Y%m%d-%H%M%S")
+	ZIP_FINAL="$ZIPNAME-$DEVICE-$BUILD_NAME-$VER-$WAKTU"
+
+	msger -n "|| Zipping $DEFCONFIG into a flashable zip ||"
+
+	mv "$BUILD_OUT/arch/arm64/boot/$FILES" "$BUILD_ANYKERNEL/$FILES"
+
+	if [ "$BUILD_DTBO" = 1 ]
+	then
+		mv "$BUILD_OUT/arch/arm64/boot/dtbo.img" "$BUILD_ANYKERNEL/dtbo.img"
+	fi
+
+	cdir "$BUILD_ANYKERNEL"
+
+	zip -r "$ZIP_FINAL.zip" . -x ".git*" -x "README.md" -x "*.zip"
+
+	if [ "$SIGN" = 1 ]
+	then
+		if [ "$PTTG" = 1 ]
+		then
+			msger -n "|| Signing $DEFCONFIG ZIP ||"
+			tg_post_msg "<code>Signing $DEFCONFIG ZIP with AOSP keys..</code>"
+		fi
+
+		curl -sLo zipsigner-3.0.jar \
+			https://github.com/Magisk-Modules-Repo/zipsigner/raw/master/bin/zipsigner-3.0-dexed.jar
+
+		java -jar zipsigner-3.0.jar "$ZIP_FINAL.zip" "$ZIP_FINAL-signed.zip"
+		rm -f "$ZIP_FINAL.zip"
+		ZIP_FINAL="$ZIP_FINAL-signed"
+	fi
+
+	mv "$ZIP_FINAL.zip" "$BUILD_DIR/$ZIP_FINAL.zip"
+
+	if [ "$PTTG" = 1 ]
+	then
+		tg_post_build "$BUILD_DIR/$ZIP_FINAL.zip" \
+			"Defconfig: $DEFCONFIG | Build took: $((DIFF / 60)) minute(s) and $((DIFF % 60)) seconds"
+
+		tg_post_msg "<b>✅ BUILD SUCCESS</b>%0A<b>Defconfig : </b><code>$DEFCONFIG</code>%0A<b>Device : </b><code>$MODEL [$DEVICE]</code>%0A<b>Build Time : </b><code>$((DIFF / 60)) minute(s) $((DIFF % 60)) seconds</code>%0A<b>ZIP : </b><code>$ZIP_FINAL.zip</code>"
+	fi
+
+	cd "$KERNEL_DIR"
+	msger -n "|| Output: $BUILD_DIR/$ZIP_FINAL.zip ||"
 }
 
 ##--------------------------------------------------------------##
@@ -349,12 +661,12 @@ build_kernel()
 gen_zip()
 {
 	msger -n "|| Zipping into a flashable zip ||"
-	mv "$KERNEL_DIR"/out/arch/arm64/boot/$FILES AnyKernel3/$FILES
+	mv "$BUILD_OUT/arch/arm64/boot/$FILES" AnyKernel3/$FILES
 	if [ $BUILD_DTBO = 1 ]
 	then
-		mv "$KERNEL_DIR"/out/arch/arm64/boot/dtbo.img AnyKernel3/dtbo.img
+		mv "$BUILD_OUT/arch/arm64/boot/dtbo.img" "$BUILD_ANYKERNEL/dtbo.img"
 	fi
-	cdir AnyKernel3
+	cdir "$BUILD_ANYKERNEL"
 	zip -r $ZIPNAME-$DEVICE-$VER-"$WAKTU" . -x ".git*" -x "README.md" -x "*.zip"
 
 	## Prepare a final zip variable
@@ -377,16 +689,58 @@ gen_zip()
  	then
 		tg_post_build "$ZIP_FINAL.zip" "Build took : $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)"
 	fi
-	cd ..
+	cd "$KERNEL_DIR"
 }
 
 clone
 exports
-build_kernel
 
-if [ $LOG_DEBUG = "1" ]
+mkdir -p "$BUILDS_DIR"
+
+BUILD_FAILED=0
+
+for CURRENT_DEFCONFIG in "${DEFCONFIGS[@]}"
+do
+	msger -n "|| Starting build: $CURRENT_DEFCONFIG ||"
+
+	if ! build_kernel "$CURRENT_DEFCONFIG"
+	then
+		BUILD_FAILED=1
+	fi
+done
+
+if [ "$LOG_DEBUG" = 1 ] && [ "$PTTG" = 1 ]
 then
-	tg_post_build "error.log" "$CHATID" "Debug Mode Logs"
+	for CURRENT_DEFCONFIG in "${DEFCONFIGS[@]}"
+	do
+		BUILD_NAME="${CURRENT_DEFCONFIG%_defconfig}"
+		if [ -f "$BUILDS_DIR/$BUILD_NAME/build.log" ]
+		then
+			tg_post_build "$BUILDS_DIR/$BUILD_NAME/build.log" "Debug Log: $CURRENT_DEFCONFIG"
+		fi
+	done
 fi
 
-##----------------*****-----------------------------##
+if [ "$BUILD_FAILED" = 1 ]
+then
+	msger -e "One or more defconfig builds failed."
+	if [ "$PTTG" = 1 ]
+	then
+		tg_post_msg "<b>🏁 MULTI-DEFCONFIG BUILD FINISHED</b>%0A<b>Status : </b><code>Some builds failed</code>"
+	fi
+	exit 1
+fi
+
+msger -n "|| All defconfig builds completed successfully ||"
+
+if [ "$PTTG" = 1 ]
+then
+	SUMMARY="<b>🏁 ALL BUILD COMPLETED</b>%0A<b>Total Defconfig : </b><code>${#DEFCONFIGS[@]}</code>%0A"
+	for CURRENT_DEFCONFIG in "${DEFCONFIGS[@]}"
+	do
+		SUMMARY+="%0A✅ <code>$CURRENT_DEFCONFIG</code>"
+	done
+	tg_post_msg "$SUMMARY"
+fi
+
+exit 0
