@@ -25,6 +25,7 @@ KERNEL="$WORKDIR/kernel"
 # Cloning Sources
 git clone --single-branch --depth=1 https://github.com/Asyanx/kernel-whyred $KERNEL && cd $KERNEL
 export LOCALVERSION=+🦖
+BUILD_EMOTE="${LOCALVERSION#+}"
 
 # Bail out if script fails
 set -e
@@ -276,10 +277,6 @@ build_kernel()
 
 	msger -n "|| Preparing $DEFCONFIG ||"
 
-	if [ "$PTTG" = 1 ]
-	then
-		tg_post_msg "<b>🚀 BUILD STARTED</b>%0A<b>Defconfig : </b><code>$DEFCONFIG</code>%0A<b>Device : </b><code>$MODEL [$DEVICE]</code>%0A<b>Compiler : </b><code>$COMPILER</code>%0A<b>KernelSU : </b><code>$([ "$KSU" = 1 ] && echo Yes || echo No)</code>"
-	fi
 
 	# Each defconfig gets its own output and AnyKernel directory.
 	rm -rf "$BUILD_DIR"
@@ -299,9 +296,9 @@ build_kernel()
 
 	if [ "$KSU" = 1 ]
 	then
-		tg_post_msg "<b>Sea CI Build Triggered</b>%0A<b>Defconfig : </b><code>$DEFCONFIG</code>%0A<b>Docker OS : </b><code>$DISTRO</code>%0A<b>Kernel Version : </b><code>$KERVER</code>%0A<b>Date : </b><code>$(TZ=Asia/Jakarta date)</code>%0A<b>Device : </b><code>$MODEL [$DEVICE]</code>%0A<b>Host Core Count : </b><code>$PROCS</code>%0A<b>Compiler Used : </b><code>$KBUILD_COMPILER_STRING</code>%0A<b>KernelSU : </b><code>Yes</code>%0A<b>Top Commit : </b><code>$COMMIT_HEAD</code>"
+		tg_post_msg "<b>$BUILD_EMOTE Sea Build Started</b>%0A<b>Defconfig : </b><code>$DEFCONFIG</code>%0A<b>Docker OS : </b><code>$DISTRO</code>%0A<b>Kernel Version : </b><code>$KERVER</code>%0A<b>Date : </b><code>$(TZ=Asia/Jakarta date)</code>%0A<b>Device : </b><code>$MODEL [$DEVICE]</code>%0A<b>Host Core Count : </b><code>$PROCS</code>%0A<b>Compiler Used : </b><code>$KBUILD_COMPILER_STRING</code>%0A<b>KernelSU : </b><code>Yes</code>%0A<b>Top Commit : </b><code>$COMMIT_HEAD</code>"
 	else
-		tg_post_msg "<b>Sea CI Build Triggered</b>%0A<b>Defconfig : </b><code>$DEFCONFIG</code>%0A<b>Docker OS : </b><code>$DISTRO</code>%0A<b>Kernel Version : </b><code>$KERVER</code>%0A<b>Date : </b><code>$(TZ=Asia/Jakarta date)</code>%0A<b>Device : </b><code>$MODEL [$DEVICE]</code>%0A<b>Host Core Count : </b><code>$PROCS</code>%0A<b>Compiler Used : </b><code>$KBUILD_COMPILER_STRING</code>%0A<b>KernelSU : </b><code>No</code>%0A<b>Top Commit : </b><code>$COMMIT_HEAD</code>"
+		tg_post_msg "<b>$BUILD_EMOTE Sea Build Started</b>%0A<b>Defconfig : </b><code>$DEFCONFIG</code>%0A<b>Docker OS : </b><code>$DISTRO</code>%0A<b>Kernel Version : </b><code>$KERVER</code>%0A<b>Date : </b><code>$(TZ=Asia/Jakarta date)</code>%0A<b>Device : </b><code>$MODEL [$DEVICE]</code>%0A<b>Host Core Count : </b><code>$PROCS</code>%0A<b>Compiler Used : </b><code>$KBUILD_COMPILER_STRING</code>%0A<b>KernelSU : </b><code>No</code>%0A<b>Top Commit : </b><code>$COMMIT_HEAD</code>"
 	fi
 
 	msger -n "|| Applying $DEFCONFIG ||"
@@ -311,7 +308,9 @@ build_kernel()
 	then
 		cp "$BUILD_OUT/.config" "arch/arm64/configs/$DEFCONFIG"
 		git add "arch/arm64/configs/$DEFCONFIG"
-		git commit -m "$DEFCONFIG: Regenerate This is an auto-generated commit"
+		git commit -m "$DEFCONFIG: Regenerate
+
+This is an auto-generated commit"
 	fi
 
 	BUILD_START=$(date +"%s")
@@ -383,10 +382,13 @@ build_kernel()
 		return 0
 	else
 		msger -e "Build failed: $DEFCONFIG"
-		if [ "$PTTG" = 1 ] && [ -f "$BUILD_LOG" ]
+		if [ "$PTTG" = 1 ]
 		then
-			tg_post_build "$BUILD_LOG" "*$DEFCONFIG failed after $((DIFF / 60)) minute(s) and $((DIFF % 60)) seconds*"
-			tg_post_msg "<b>❌ BUILD FAILED</b>%0A<b>Defconfig : </b><code>$DEFCONFIG</code>%0A<b>Build Time : </b><code>$((DIFF / 60)) minute(s) $((DIFF % 60)) seconds</code>"
+			tg_post_msg "<b>❌ Sea Build Failed</b>%0A<b>Defconfig : </b><code>$DEFCONFIG</code>%0A<b>Build Time : </b><code>$((DIFF / 60)) minute(s) $((DIFF % 60)) seconds</code>"
+			if [ -f "$BUILD_LOG" ]
+			then
+				tg_post_build "$BUILD_LOG" "*Build log: $DEFCONFIG*"
+			fi
 		fi
 		return 1
 	fi
@@ -496,37 +498,16 @@ do
 
 	if ! build_kernel "$CURRENT_DEFCONFIG"
 	then
-		BUILD_FAILED=1
+		msger -e "Build failed: $CURRENT_DEFCONFIG"
+		exit 1
 	fi
 done
-
-if [ "$LOG_DEBUG" = 1 ] && [ "$PTTG" = 1 ]
-then
-	for CURRENT_DEFCONFIG in "${DEFCONFIGS[@]}"
-	do
-		BUILD_NAME="${CURRENT_DEFCONFIG%_defconfig}"
-		if [ -f "$BUILDS_DIR/$BUILD_NAME/build.log" ]
-		then
-			tg_post_build "$BUILDS_DIR/$BUILD_NAME/build.log" "Debug Log: $CURRENT_DEFCONFIG"
-		fi
-	done
-fi
-
-if [ "$BUILD_FAILED" = 1 ]
-then
-	msger -e "One or more defconfig builds failed."
-	if [ "$PTTG" = 1 ]
-	then
-		tg_post_msg "<b>🏁 MULTI-DEFCONFIG BUILD FINISHED</b>%0A<b>Status : </b><code>Some builds failed</code>"
-	fi
-	exit 1
-fi
 
 msger -n "|| All defconfig builds completed successfully ||"
 
 if [ "$PTTG" = 1 ]
 then
-	SUMMARY="<b>🏁 ALL BUILD COMPLETED</b>%0A<b>Total Defconfig : </b><code>${#DEFCONFIGS[@]}</code>%0A"
+	SUMMARY="<b>🏁 All Sea Builds Completed</b>%0A<b>Total Defconfig : </b><code>${#DEFCONFIGS[@]}</code>%0A"
 	for CURRENT_DEFCONFIG in "${DEFCONFIGS[@]}"
 	do
 		SUMMARY+="%0A✅ <code>$CURRENT_DEFCONFIG</code>"
