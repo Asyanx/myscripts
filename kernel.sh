@@ -23,7 +23,7 @@ WORKDIR="$(pwd)"
 KERNEL="$WORKDIR/kernel"
 
 # Cloning Sources
-git clone --single-branch --depth=1 https://github.com/Asyanx/android_kernel_xiaomi_mt6785 -b lineage-23.2 $KERNEL && cd $KERNEL
+git clone --single-branch --depth=1 https://github.com/Asyanx/kernel-whyred $KERNEL && cd $KERNEL
 export LOCALVERSION=+🦖
 
 # Bail out if script fails
@@ -54,8 +54,8 @@ KERNEL_DIR="$(pwd)"
 BASEDIR="$(basename "$KERNEL_DIR")"
 
 # PATCH KERNELSU & RELEASE VERSION
-KSU=1
-RELEASE=R2
+KSU=0
+RELEASE=R1
 
 # The name of the Kernel, to name the ZIP
 ZIPNAME="Sea"
@@ -63,26 +63,26 @@ if [ $KSU = 1 ]
 then
    VER="$RELEASE-KSU"
 else
-    VER="$RELEASE-NONKSU"
+    VER="$RELEASE"
 fi
 
 # Build Author
 # Take care, it should be a universal and most probably, case-sensitive
 AUTHOR="Asyanx"
-HOSTR="holf"
+HOSTR="SICK"
 
 # Architecture
 ARCH=arm64
 
 # The name of the device for which the kernel is built
-MODEL="Redmi Note 10s"
+MODEL="Redmi Note 5/PRO"
 
 # The codename of the device
-DEVICE="Rosemery"
+DEVICE="Whyred"
 
 # The defconfig which should be used. Get it from config.gz from
 # your device or check source
-DEFCONFIG=rosemary_defconfig
+DEFCONFIG=whyred_defconfig
 
 # Specify compiler.
 # 'clang' or 'gcc'
