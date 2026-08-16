@@ -186,9 +186,6 @@ WAKTU=$(date +"%F-%S")
 	if [ $COMPILER = "clang" ]
 	then
 		git clone --depth=1 https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r547379.git ${TC_DIR}
-  		export LD_LIBRARY_PATH=$TC_DIR/bin/:$LD_LIBRARY_PATH
-  		export LLVM=1
-		export LLVM_IAS=1
 	fi
 
 	msger -n "|| Cloning Anykernel ||"
@@ -286,13 +283,6 @@ build_kernel()
 	then
 		MAKE+=(
   			CC=clang \
-			LD=ld.lld \
-			AS=llvm-as \
-			AR=llvm-ar \
-			NM=llvm-nm \
-			OBJCOPY=llvm-objcopy \
-			OBJDUMP=llvm-objdump \
-			STRIP=llvm-strip \
 			CROSS_COMPILE=aarch64-linux-gnu- \
 			CROSS_COMPILE_ARM32=arm-linux-gnueabi-
      ) 
