@@ -197,7 +197,6 @@ WAKTU=$(date +"%F-%S")
 	if [ $COMPILER = "clang" ]
 	then
 		git clone --depth=1 https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r547379.git ${TC_DIR}
-		export LD_LIBRARY_PATH=$TC_DIR/bin/:$LD_LIBRARY_PATH
 	fi
 
 	msger -n "|| Cloning Anykernel ||"
