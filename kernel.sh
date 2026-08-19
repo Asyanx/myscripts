@@ -352,7 +352,7 @@ This is an auto-generated commit"
 	fi
 
 	msger -n "|| Started Compilation: $DEFCONFIG ||"
-	make -k -j"$PROCS" O="$BUILD_OUT" \
+	make -j"$PROCS" O="$BUILD_OUT" \
 		V="$VERBOSE" \
 		"${MAKE[@]}" 2>&1 | tee "$BUILD_LOG"
 
@@ -418,16 +418,46 @@ gen_zip()
 
 	msger -n "|| Zipping $DEFCONFIG into a flashable zip ||"
 
-	mv "$BUILD_OUT/arch/arm64/boot/$FILES" "$BUILD_ANYKERNEL/$FILES"
+	# Pastikan hasil build kernel benar-benar ada sebelum packaging.
+	if [ ! -f "$BUILD_OUT/arch/arm64/boot/$FILES" ]
+	then
+		msger -e "$FILES tidak ditemukan untuk $DEFCONFIG!"
+		return 1
+	fi
+
+	# Copy hasil build ke AnyKernel3 tanpa menghapus file asli dari out/.
+	cp -f "$BUILD_OUT/arch/arm64/boot/$FILES" "$BUILD_ANYKERNEL/$FILES"
+
+	# Pastikan hasil build berhasil masuk ke AnyKernel3.
+	if [ ! -f "$BUILD_ANYKERNEL/$FILES" ]
+	then
+		msger -e "$FILES gagal disalin ke AnyKernel3!"
+		return 1
+	fi
 
 	if [ "$BUILD_DTBO" = 1 ]
 	then
-		mv "$BUILD_OUT/arch/arm64/boot/dtbo.img" "$BUILD_ANYKERNEL/dtbo.img"
+		if [ ! -f "$BUILD_OUT/arch/arm64/boot/dtbo.img" ]
+		then
+			msger -e "dtbo.img tidak ditemukan untuk $DEFCONFIG!"
+			return 1
+		fi
+
+		cp -f "$BUILD_OUT/arch/arm64/boot/dtbo.img" "$BUILD_ANYKERNEL/dtbo.img"
 	fi
 
 	cdir "$BUILD_ANYKERNEL"
 
 	zip -r "$ZIP_FINAL.zip" . -x ".git*" -x "README.md" -x "*.zip"
+
+	# Pastikan Image.gz-dtb benar-benar ada di dalam ZIP sebelum dikirim.
+	if ! unzip -l "$ZIP_FINAL.zip" | grep -q "$FILES"
+	then
+		msger -e "$FILES tidak ditemukan di dalam ZIP $ZIP_FINAL.zip!"
+		return 1
+	fi
+
+	msger -n "|| $FILES berhasil dimasukkan ke ZIP ||"
 
 	if [ "$SIGN" = 1 ]
 	then
@@ -461,39 +491,6 @@ gen_zip()
 
 ##--------------------------------------------------------------##
 
-gen_zip()
-{
-	msger -n "|| Zipping into a flashable zip ||"
-	mv "$BUILD_OUT/arch/arm64/boot/$FILES" AnyKernel3/$FILES
-	if [ $BUILD_DTBO = 1 ]
-	then
-		mv "$BUILD_OUT/arch/arm64/boot/dtbo.img" "$BUILD_ANYKERNEL/dtbo.img"
-	fi
-	cdir "$BUILD_ANYKERNEL"
-	zip -r $ZIPNAME-$DEVICE-$VER-"$WAKTU" . -x ".git*" -x "README.md" -x "*.zip"
-
-	## Prepare a final zip variable
-	ZIP_FINAL="$ZIPNAME-$DEVICE-$VER-$WAKTU"
-
-	if [ $SIGN = 1 ]
-	then
-		## Sign the zip before sending it to telegram
-		if [ "$PTTG" = 1 ]
- 		then
- 			msger -n "|| Signing Zip ||"
-			tg_post_msg "<code>Signing Zip file with AOSP keys..</code>"
- 		fi
-		curl -sLo zipsigner-3.0.jar https://github.com/Magisk-Modules-Repo/zipsigner/raw/master/bin/zipsigner-3.0-dexed.jar
-		java -jar zipsigner-3.0.jar "$ZIP_FINAL".zip "$ZIP_FINAL"-signed.zip
-		ZIP_FINAL="$ZIP_FINAL-signed"
-	fi
-
-	if [ "$PTTG" = 1 ]
- 	then
-		tg_post_build "$ZIP_FINAL.zip" "Build took : $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)"
-	fi
-	cd "$KERNEL_DIR"
-}
 
 clone
 exports
