@@ -272,7 +272,7 @@ build_kernel()
 
  	if [ $KSU = 1 ]
  	then
-   	  echo "CONFIG_NOMOUNT=y" >> $DEFCONFIG
+   	  echo "CONFIG_NOMOUNT=y" >> arch/arm64/configs/$DEFCONFIG
  	  curl -LSs "https://raw.githubusercontent.com/xxblebleblexx/nomount-installer/refs/heads/installer/nomount.sh" | bash -s 4.19
  	fi
 
