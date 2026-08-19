@@ -88,7 +88,7 @@ DEVICE="Whyred"
 # Tambahkan sebanyak yang diperlukan.
 DEFCONFIGS=(
     "vendor/whyred-perf_defconfig"
-    "vendor/whyred_perf_defconfig"
+#    "vendor/whyred_perf_defconfig"
 )
 
 # Output terpisah untuk setiap defconfig agar hasil build tidak saling bertabrakan.
