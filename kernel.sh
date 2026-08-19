@@ -25,11 +25,9 @@ KERNEL="$WORKDIR/kernel"
 # Cloning Sources
 git clone --single-branch --depth=1 https://github.com/Asyanx/kernel-whyred-4.19 -b back $KERNEL && cd $KERNEL
 export LOCALVERSION=+🦖
-BUILD_EMOTE="${LOCALVERSION#+}"
 
 # Bail out if script fails
 set -e
-set -o pipefail
 
 # Function to show an informational message
 msger()
@@ -84,16 +82,7 @@ DEVICE="Whyred"
 
 # The defconfig which should be used. Get it from config.gz from
 # your device or check source
-# Defconfig yang akan dibuild dalam satu kali eksekusi.
-# Tambahkan sebanyak yang diperlukan.
-DEFCONFIGS=(
-    "vendor/whyred-perf_defconfig"
-#    "vendor/whyred_perf_defconfig"
-)
-
-# Output terpisah untuk setiap defconfig agar hasil build tidak saling bertabrakan.
-BUILDS_DIR="$KERNEL_DIR/kernel_builds"
-
+DEFCONFIG=vendor/whyred-perf_defconfig
 
 # Specify compiler.
 # 'clang' or 'gcc'
@@ -197,7 +186,7 @@ WAKTU=$(date +"%F-%S")
 	if [ $COMPILER = "clang" ]
 	then
 		git clone --depth=1 https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r547379.git ${TC_DIR}
-		export LD_LIBRARY_PATH=$TC_DIR/bin/:$LD_LIBRARY_PATH
+  		export LD_LIBRARY_PATH=$TC_DIR/bin/:$LD_LIBRARY_PATH
   		export LLVM=1
 		export LLVM_IAS=1
 	fi
@@ -269,59 +258,34 @@ tg_post_build()
 
 build_kernel()
 {
-	DEFCONFIG="$1"
-	BUILD_NAME="${DEFCONFIG%_defconfig}"
-	BUILD_DIR="$BUILDS_DIR/$BUILD_NAME"
-	BUILD_OUT="$BUILD_DIR/out"
-	BUILD_ANYKERNEL="$BUILD_DIR/AnyKernel3"
-	BUILD_LOG="$BUILD_DIR/build.log"
-	WAKTU=$(date +"%Y%m%d-%H%M%S")
-	BUILD_ZIP="$BUILD_DIR/$ZIPNAME-$DEVICE-$BUILD_NAME-$VER-$WAKTU.zip"
-
-	msger -n "|| Preparing $DEFCONFIG ||"
-
-
-	# Each defconfig gets its own output and AnyKernel directory.
-	rm -rf "$BUILD_DIR"
-	mkdir -p "$BUILD_DIR"
-
-	if [ "$INCREMENTAL" = 0 ]
+	if [ $INCREMENTAL = 0 ]
 	then
-		msger -n "|| Cleaning kernel source ||"
-		make mrproper
+		msger -n "|| Cleaning Sources ||"
+		make mrproper && rm -rf out
 	fi
-
-	# Make a fresh AnyKernel working tree for this defconfig.
-	cp -a "$KERNEL_DIR/AnyKernel3" "$BUILD_ANYKERNEL"
-
-	# Reset build-specific variables so consecutive builds do not inherit state.
-	MAKE=()
 
 	if [ "$KSU" = 1 ]
-	then
-		tg_post_msg "<b>$BUILD_EMOTE Sea Build Started</b>%0A<b>Defconfig : </b><code>$DEFCONFIG</code>%0A<b>Docker OS : </b><code>$DISTRO</code>%0A<b>Kernel Version : </b><code>$KERVER</code>%0A<b>Date : </b><code>$(TZ=Asia/Jakarta date)</code>%0A<b>Device : </b><code>$MODEL [$DEVICE]</code>%0A<b>Host Core Count : </b><code>$PROCS</code>%0A<b>Compiler Used : </b><code>$KBUILD_COMPILER_STRING</code>%0A<b>KernelSU : </b><code>Yes</code>%0A<b>Top Commit : </b><code>$COMMIT_HEAD</code>"
+ 	then
+		tg_post_msg "<b>Sea CI Build Triggered</b>%0A<b>Docker OS: </b><code>$DISTRO</code>%0A<b>Kernel Version : </b><code>$KERVER</code>%0A<b>Date : </b><code>$(TZ=Asia/Jakarta date)</code>%0A<b>Device : </b><code>$MODEL [$DEVICE]</code>%0A<b>Host Core Count : </b><code>$PROCS</code>%0A<b>Compiler Used : </b><code>$KBUILD_COMPILER_STRING</code>%0A<b>KernelSU: </b><code>Yes This KSU</code>%0A<b>Top Commit : </b><code>$COMMIT_HEAD</code>"
 	else
-		tg_post_msg "<b>$BUILD_EMOTE Sea Build Started</b>%0A<b>Defconfig : </b><code>$DEFCONFIG</code>%0A<b>Docker OS : </b><code>$DISTRO</code>%0A<b>Kernel Version : </b><code>$KERVER</code>%0A<b>Date : </b><code>$(TZ=Asia/Jakarta date)</code>%0A<b>Device : </b><code>$MODEL [$DEVICE]</code>%0A<b>Host Core Count : </b><code>$PROCS</code>%0A<b>Compiler Used : </b><code>$KBUILD_COMPILER_STRING</code>%0A<b>KernelSU : </b><code>No</code>%0A<b>Top Commit : </b><code>$COMMIT_HEAD</code>"
-	fi
+		tg_post_msg "<b>Sea CI Build Triggered</b>%0A<b>Docker OS: </b><code>$DISTRO</code>%0A<b>Kernel Version : </b><code>$KERVER</code>%0A<b>Date : </b><code>$(TZ=Asia/Jakarta date)</code>%0A<b>Device : </b><code>$MODEL [$DEVICE]</code>%0A<b>Host Core Count : </b><code>$PROCS</code>%0A<b>Compiler Used : </b><code>$KBUILD_COMPILER_STRING</code>%0A<b>NON KernelSU:<code>No KSU</code>%0A</b><b>Top Commit : </b><code>$COMMIT_HEAD</code>"
+    	fi
 
-	msger -n "|| Applying $DEFCONFIG ||"
-	make O="$BUILD_OUT" "$DEFCONFIG"
-
-	if [ "$DEF_REG" = 1 ]
+	make O=out $DEFCONFIG
+	if [ $DEF_REG = 1 ]
 	then
-		cp "$BUILD_OUT/.config" "arch/arm64/configs/$DEFCONFIG"
-		git add "arch/arm64/configs/$DEFCONFIG"
+		cp .config arch/arm64/configs/$DEFCONFIG
+		git add arch/arm64/configs/$DEFCONFIG
 		git commit -m "$DEFCONFIG: Regenerate
 
-This is an auto-generated commit"
+						This is an auto-generated commit"
 	fi
-
+ 
 	BUILD_START=$(date +"%s")
-
-	if [ "$COMPILER" = "clang" ]
+	if [ $COMPILER = "clang" ]
 	then
 		MAKE+=(
-			CC=clang
+  			CC=clang \
 			LD=ld.lld \
 			AS=llvm-as \
 			AR=llvm-ar \
@@ -329,197 +293,110 @@ This is an auto-generated commit"
 			OBJCOPY=llvm-objcopy \
 			OBJDUMP=llvm-objdump \
 			STRIP=llvm-strip \
-			CROSS_COMPILE=aarch64-linux-gnu-
+			CROSS_COMPILE=aarch64-linux-gnu- \
 			CROSS_COMPILE_ARM32=arm-linux-gnueabi-
-		)
-	elif [ "$COMPILER" = "gcc" ]
+     ) 
+	elif [ $COMPILER = "gcc" ]
 	then
 		MAKE+=(
-			CROSS_COMPILE_ARM32=arm-eabi-
-			CROSS_COMPILE=aarch64-elf-
-			AR=aarch64-elf-ar
-			OBJDUMP=aarch64-elf-objdump
-			STRIP=aarch64-elf-strip
-			NM=aarch64-elf-nm
-			OBJCOPY=aarch64-elf-objcopy
+			CROSS_COMPILE_ARM32=arm-eabi- \
+			CROSS_COMPILE=aarch64-elf- \
+			AR=aarch64-elf-ar \
+			OBJDUMP=aarch64-elf-objdump \
+			STRIP=aarch64-elf-strip \
+			NM=aarch64-elf-nm \
+			OBJCOPY=aarch64-elf-objcopy \
 			LD=aarch64-elf-$LINKER
 		)
 	fi
 
-	if [ "$SILENCE" = 1 ]
+	if [ $SILENCE = "1" ]
 	then
 		MAKE+=( -s )
 	fi
 
-	msger -n "|| Started Compilation: $DEFCONFIG ||"
-	make -j"$PROCS" O="$BUILD_OUT" \
-		V="$VERBOSE" \
-		"${MAKE[@]}" 2>&1 | tee "$BUILD_LOG"
-
-	if [ "$MODULES" = 1 ]
+	msger -n "|| Started Compilation ||"
+	make -kj"$PROCS" O=out \
+		V=$VERBOSE \
+		"${MAKE[@]}" 2>&1 | tee error.log
+	if [ $MODULES = "1" ]
 	then
-		msger -n "|| Started Compiling Modules: $DEFCONFIG ||"
-		make -j"$PROCS" O="$BUILD_OUT" "${MAKE[@]}" modules_prepare
-		make -j"$PROCS" O="$BUILD_OUT" "${MAKE[@]}" modules INSTALL_MOD_PATH="$BUILD_OUT/modules"
-		make -j"$PROCS" O="$BUILD_OUT" "${MAKE[@]}" modules_install INSTALL_MOD_PATH="$BUILD_OUT/modules"
-
-		if [ -d "$BUILD_OUT/modules" ] && [ -d "$BUILD_ANYKERNEL/modules/system/lib/modules" ]
-		then
-			find "$BUILD_OUT/modules" -type f -iname '*.ko' \
-				-exec cp {} "$BUILD_ANYKERNEL/modules/system/lib/modules/" \;
-		fi
+	    msger -n "|| Started Compiling Modules ||"
+	    make -j"$PROCS" O=out \
+		 "${MAKE[@]}" modules_prepare
+	    make -j"$PROCS" O=out \
+		 "${MAKE[@]}" modules INSTALL_MOD_PATH="$KERNEL_DIR"/out/modules
+	    make -j"$PROCS" O=out \
+		 "${MAKE[@]}" modules_install INSTALL_MOD_PATH="$KERNEL_DIR"/out/modules
+	    find "$KERNEL_DIR"/out/modules -type f -iname '*.ko' -exec cp {} AnyKernel3/modules/system/lib/modules/ \;
 	fi
 
-	BUILD_END=$(date +"%s")
-	DIFF=$((BUILD_END - BUILD_START))
+		BUILD_END=$(date +"%s")
+		DIFF=$((BUILD_END - BUILD_START))
 
-	if [ -f "$BUILD_OUT/arch/arm64/boot/$FILES" ]
-	then
-		msger -n "|| $DEFCONFIG compiled successfully ||"
-
-		if [ "$BUILD_DTBO" = 1 ]
+		if [ -f "$KERNEL_DIR"/out/arch/arm64/boot/$FILES ]
 		then
-			msger -n "|| Building DTBO: $DEFCONFIG ||"
-			tg_post_msg "<code>Building DTBO for $DEFCONFIG..</code>"
-
-			python2 "$KERNEL_DIR/scripts/ufdt/libufdt/utils/src/mkdtboimg.py" \
-				create "$BUILD_OUT/arch/arm64/boot/dtbo.img" \
-				--page_size=4096 \
-				"$BUILD_OUT/arch/arm64/boot/dts/$DTBO_PATH"
-		fi
-
-		gen_zip "$DEFCONFIG"
-		return 0
-	else
-		msger -e "Build failed: $DEFCONFIG"
-		if [ "$PTTG" = 1 ]
-		then
-			tg_post_msg "<b>❌ Sea Build Failed</b>%0A<b>Defconfig : </b><code>$DEFCONFIG</code>%0A<b>Build Time : </b><code>$((DIFF / 60)) minute(s) $((DIFF % 60)) seconds</code>"
-			if [ -f "$BUILD_LOG" ]
+			msger -n "|| Kernel successfully compiled ||"
+			if [ $BUILD_DTBO = 1 ]
 			then
-				tg_post_build "$BUILD_LOG" "*Build log: $DEFCONFIG*"
+				msger -n "|| Building DTBO ||"
+				tg_post_msg "<code>Building DTBO..</code>"
+				python2 "$KERNEL_DIR/scripts/ufdt/libufdt/utils/src/mkdtboimg.py" \
+					create "$KERNEL_DIR/out/arch/arm64/boot/dtbo.img" --page_size=4096 "$KERNEL_DIR/out/arch/arm64/boot/dts/$DTBO_PATH"
+			fi
+				gen_zip
+			else
+			if [ "$PTTG" = 1 ]
+ 			then
+				tg_post_build "error.log" "*Build failed to compile after $((DIFF / 60)) minute(s) and $((DIFF % 60)) seconds*"
 			fi
 		fi
-		return 1
-	fi
+
 }
 
 ##--------------------------------------------------------------##
 
 gen_zip()
 {
-	DEFCONFIG="$1"
-	BUILD_NAME="${DEFCONFIG%_defconfig}"
-	BUILD_DIR="$BUILDS_DIR/$BUILD_NAME"
-	BUILD_OUT="$BUILD_DIR/out"
-	BUILD_ANYKERNEL="$BUILD_DIR/AnyKernel3"
-	WAKTU=$(date +"%Y%m%d-%H%M%S")
-	ZIP_FINAL="$ZIPNAME-$DEVICE-$BUILD_NAME-$VER-$WAKTU"
-
-	msger -n "|| Zipping $DEFCONFIG into a flashable zip ||"
-
-	# Pastikan hasil build kernel benar-benar ada sebelum packaging.
-	if [ ! -f "$BUILD_OUT/arch/arm64/boot/$FILES" ]
+	msger -n "|| Zipping into a flashable zip ||"
+	mv "$KERNEL_DIR"/out/arch/arm64/boot/$FILES AnyKernel3/$FILES
+	if [ $BUILD_DTBO = 1 ]
 	then
-		msger -e "$FILES tidak ditemukan untuk $DEFCONFIG!"
-		return 1
+		mv "$KERNEL_DIR"/out/arch/arm64/boot/dtbo.img AnyKernel3/dtbo.img
 	fi
+	cdir AnyKernel3
+	zip -r $ZIPNAME-$DEVICE-$VER-"$WAKTU" . -x ".git*" -x "README.md" -x "*.zip"
 
-	# Copy hasil build ke AnyKernel3 tanpa menghapus file asli dari out/.
-	cp -f "$BUILD_OUT/arch/arm64/boot/$FILES" "$BUILD_ANYKERNEL/$FILES"
+	## Prepare a final zip variable
+	ZIP_FINAL="$ZIPNAME-$DEVICE-$VER-$WAKTU"
 
-	# Pastikan hasil build berhasil masuk ke AnyKernel3.
-	if [ ! -f "$BUILD_ANYKERNEL/$FILES" ]
+	if [ $SIGN = 1 ]
 	then
-		msger -e "$FILES gagal disalin ke AnyKernel3!"
-		return 1
-	fi
-
-	if [ "$BUILD_DTBO" = 1 ]
-	then
-		if [ ! -f "$BUILD_OUT/arch/arm64/boot/dtbo.img" ]
-		then
-			msger -e "dtbo.img tidak ditemukan untuk $DEFCONFIG!"
-			return 1
-		fi
-
-		cp -f "$BUILD_OUT/arch/arm64/boot/dtbo.img" "$BUILD_ANYKERNEL/dtbo.img"
-	fi
-
-	cdir "$BUILD_ANYKERNEL"
-
-	zip -r "$ZIP_FINAL.zip" . -x ".git*" -x "README.md" -x "*.zip"
-
-	# Pastikan Image.gz-dtb benar-benar ada di dalam ZIP sebelum dikirim.
-	if ! unzip -l "$ZIP_FINAL.zip" | grep -q "$FILES"
-	then
-		msger -e "$FILES tidak ditemukan di dalam ZIP $ZIP_FINAL.zip!"
-		return 1
-	fi
-
-	msger -n "|| $FILES berhasil dimasukkan ke ZIP ||"
-
-	if [ "$SIGN" = 1 ]
-	then
+		## Sign the zip before sending it to telegram
 		if [ "$PTTG" = 1 ]
-		then
-			msger -n "|| Signing $DEFCONFIG ZIP ||"
-			tg_post_msg "<code>Signing $DEFCONFIG ZIP with AOSP keys..</code>"
-		fi
-
-		curl -sLo zipsigner-3.0.jar \
-			https://github.com/Magisk-Modules-Repo/zipsigner/raw/master/bin/zipsigner-3.0-dexed.jar
-
-		java -jar zipsigner-3.0.jar "$ZIP_FINAL.zip" "$ZIP_FINAL-signed.zip"
-		rm -f "$ZIP_FINAL.zip"
+ 		then
+ 			msger -n "|| Signing Zip ||"
+			tg_post_msg "<code>Signing Zip file with AOSP keys..</code>"
+ 		fi
+		curl -sLo zipsigner-3.0.jar https://github.com/Magisk-Modules-Repo/zipsigner/raw/master/bin/zipsigner-3.0-dexed.jar
+		java -jar zipsigner-3.0.jar "$ZIP_FINAL".zip "$ZIP_FINAL"-signed.zip
 		ZIP_FINAL="$ZIP_FINAL-signed"
 	fi
 
-	mv "$ZIP_FINAL.zip" "$BUILD_DIR/$ZIP_FINAL.zip"
-
 	if [ "$PTTG" = 1 ]
-	then
-		tg_post_build "$BUILD_DIR/$ZIP_FINAL.zip" \
-			"Defconfig: $DEFCONFIG | Build took: $((DIFF / 60)) minute(s) and $((DIFF % 60)) seconds"
-
-		tg_post_msg "<b>✅ BUILD SUCCESS</b>%0A<b>Defconfig : </b><code>$DEFCONFIG</code>%0A<b>Device : </b><code>$MODEL [$DEVICE]</code>%0A<b>Build Time : </b><code>$((DIFF / 60)) minute(s) $((DIFF % 60)) seconds</code>%0A<b>ZIP : </b><code>$ZIP_FINAL.zip</code>"
+ 	then
+		tg_post_build "$ZIP_FINAL.zip" "Build took : $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)"
 	fi
-
-	cd "$KERNEL_DIR"
-	msger -n "|| Output: $BUILD_DIR/$ZIP_FINAL.zip ||"
+	cd ..
 }
-
-##--------------------------------------------------------------##
-
 
 clone
 exports
+build_kernel
 
-mkdir -p "$BUILDS_DIR"
-
-BUILD_FAILED=0
-
-for CURRENT_DEFCONFIG in "${DEFCONFIGS[@]}"
-do
-	msger -n "|| Starting build: $CURRENT_DEFCONFIG ||"
-
-	if ! build_kernel "$CURRENT_DEFCONFIG"
-	then
-		msger -e "Build failed: $CURRENT_DEFCONFIG"
-		exit 1
-	fi
-done
-
-msger -n "|| All defconfig builds completed successfully ||"
-
-if [ "$PTTG" = 1 ]
+if [ $LOG_DEBUG = "1" ]
 then
-	SUMMARY="<b>🏁 All Sea Builds Completed</b>%0A<b>Total Defconfig : </b><code>${#DEFCONFIGS[@]}</code>%0A"
-	for CURRENT_DEFCONFIG in "${DEFCONFIGS[@]}"
-	do
-		SUMMARY+="%0A✅ <code>$CURRENT_DEFCONFIG</code>"
-	done
-	tg_post_msg "$SUMMARY"
+	tg_post_build "error.log" "$CHATID" "Debug Mode Logs"
 fi
 
-exit 0
+##----------------*****-----------------------------##
