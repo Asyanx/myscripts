@@ -171,13 +171,6 @@ WAKTU=$(date +"%F-%S")
 
 #Now Its time for other stuffs like cloning, exporting, etc
 
-#ad nounmount driver
-if [ $KSU = 1 ]
-then
-    echo "CONFIG_NOMOUNT=y" >> $DEFCONFIG
-    curl -LSs "https://raw.githubusercontent.com/xxblebleblexx/nomount-installer/refs/heads/installer/nomount.sh" | bash -s 4.19
-fi
-
  clone()
  {
 	echo " "
@@ -275,7 +268,14 @@ build_kernel()
 		tg_post_msg "<b>Sea CI Build Triggered</b>%0A<b>Docker OS: </b><code>$DISTRO</code>%0A<b>Kernel Version : </b><code>$KERVER</code>%0A<b>Date : </b><code>$(TZ=Asia/Jakarta date)</code>%0A<b>Device : </b><code>$MODEL [$DEVICE]</code>%0A<b>Host Core Count : </b><code>$PROCS</code>%0A<b>Compiler Used : </b><code>$KBUILD_COMPILER_STRING</code>%0A<b>KernelSU: </b><code>Yes This KSU</code>%0A<b>Top Commit : </b><code>$COMMIT_HEAD</code>"
 	else
 		tg_post_msg "<b>Sea CI Build Triggered</b>%0A<b>Docker OS: </b><code>$DISTRO</code>%0A<b>Kernel Version : </b><code>$KERVER</code>%0A<b>Date : </b><code>$(TZ=Asia/Jakarta date)</code>%0A<b>Device : </b><code>$MODEL [$DEVICE]</code>%0A<b>Host Core Count : </b><code>$PROCS</code>%0A<b>Compiler Used : </b><code>$KBUILD_COMPILER_STRING</code>%0A<b>NON KernelSU:<code>No KSU</code>%0A</b><b>Top Commit : </b><code>$COMMIT_HEAD</code>"
-    	fi
+    fi
+
+ 	if [ $KSU = 1 ]
+ 	then
+   	  echo "CONFIG_NOMOUNT=y" >> $DEFCONFIG
+ 	  curl -LSs "https://raw.githubusercontent.com/xxblebleblexx/nomount-installer/refs/heads/installer/nomount.sh" | bash -s 4.19
+ 	fi
+
 
 	make O=out $DEFCONFIG
 	if [ $DEF_REG = 1 ]
