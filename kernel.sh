@@ -87,8 +87,8 @@ DEVICE="Whyred"
 # Defconfig yang akan dibuild dalam satu kali eksekusi.
 # Tambahkan sebanyak yang diperlukan.
 DEFCONFIGS=(
-    "whyred-perf_defconfig"
-    "whyred_perf_defconfig"
+    "vendor/whyred-perf_defconfig"
+    "vendor/whyred_perf_defconfig"
 )
 
 # Output terpisah untuk setiap defconfig agar hasil build tidak saling bertabrakan.
@@ -309,8 +309,8 @@ build_kernel()
 
 	if [ "$DEF_REG" = 1 ]
 	then
-		cp "$BUILD_OUT/.config" "arch/arm64/configs/vendor/$DEFCONFIG"
-		git add "arch/arm64/configs/vendor/$DEFCONFIG"
+		cp "$BUILD_OUT/.config" "arch/arm64/configs/$DEFCONFIG"
+		git add "arch/arm64/configs/$DEFCONFIG"
 		git commit -m "$DEFCONFIG: Regenerate
 
 This is an auto-generated commit"
