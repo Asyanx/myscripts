@@ -54,7 +54,7 @@ KERNEL_DIR="$(pwd)"
 BASEDIR="$(basename "$KERNEL_DIR")"
 
 # PATCH KERNELSU & RELEASE VERSION
-KSU=0
+KSU=1
 RELEASE=R1
 
 # The name of the Kernel, to name the ZIP
@@ -172,8 +172,11 @@ WAKTU=$(date +"%F-%S")
 #Now Its time for other stuffs like cloning, exporting, etc
 
 #ad nounmount driver
-echo "CONFIG_NOMOUNT=y" >> $DEFCONFIG
-curl -LSs "https://raw.githubusercontent.com/xxblebleblexx/nomount-installer/refs/heads/installer/nomount.sh" | bash -s 4.19
+if [ $KSU = 1 ]
+then
+    echo "CONFIG_NOMOUNT=y" >> $DEFCONFIG
+    curl -LSs "https://raw.githubusercontent.com/xxblebleblexx/nomount-installer/refs/heads/installer/nomount.sh" | bash -s 4.19
+fi
 
  clone()
  {
