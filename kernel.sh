@@ -23,7 +23,7 @@ WORKDIR="$(pwd)"
 KERNEL="$WORKDIR/kernel"
 
 # Cloning Sources
-git clone --single-branch --depth=1 https://github.com/Asyanx/kernel-whyred $KERNEL && cd $KERNEL
+git clone --single-branch --depth=1 https://github.com/Asyanx/kernel-whyred-4.19 -b back $KERNEL && cd $KERNEL
 export LOCALVERSION=+🦖
 BUILD_EMOTE="${LOCALVERSION#+}"
 
@@ -87,7 +87,7 @@ DEVICE="Whyred"
 # Defconfig yang akan dibuild dalam satu kali eksekusi.
 # Tambahkan sebanyak yang diperlukan.
 DEFCONFIGS=(
-    "whyred_defconfig"
+    "whyred-perf_defconfig"
     "whyred_perf_defconfig"
 )
 
@@ -196,7 +196,10 @@ WAKTU=$(date +"%F-%S")
 
 	if [ $COMPILER = "clang" ]
 	then
-		git clone --depth=1 https://gitlab.com/Panchajanya1999/azure-clang ${TC_DIR}
+		git clone --depth=1 https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r547379.git ${TC_DIR}
+		export LD_LIBRARY_PATH=$TC_DIR/bin/:$LD_LIBRARY_PATH
+  		export LLVM=1
+		export LLVM_IAS=1
 	fi
 
 	msger -n "|| Cloning Anykernel ||"
@@ -306,8 +309,8 @@ build_kernel()
 
 	if [ "$DEF_REG" = 1 ]
 	then
-		cp "$BUILD_OUT/.config" "arch/arm64/configs/$DEFCONFIG"
-		git add "arch/arm64/configs/$DEFCONFIG"
+		cp "$BUILD_OUT/.config" "arch/arm64/configs/vendor/$DEFCONFIG"
+		git add "arch/arm64/configs/vendor/$DEFCONFIG"
 		git commit -m "$DEFCONFIG: Regenerate
 
 This is an auto-generated commit"
@@ -319,6 +322,13 @@ This is an auto-generated commit"
 	then
 		MAKE+=(
 			CC=clang
+			LD=ld.lld \
+			AS=llvm-as \
+			AR=llvm-ar \
+			NM=llvm-nm \
+			OBJCOPY=llvm-objcopy \
+			OBJDUMP=llvm-objdump \
+			STRIP=llvm-strip \
 			CROSS_COMPILE=aarch64-linux-gnu-
 			CROSS_COMPILE_ARM32=arm-linux-gnueabi-
 		)
