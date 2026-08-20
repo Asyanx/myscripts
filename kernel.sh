@@ -24,7 +24,7 @@ KERNEL="$WORKDIR/kernel"
 
 # Cloning Sources
 git clone --single-branch --depth=1 https://github.com/Asyanx/kernel-whyred-4.19 -b android-4.19-stable $KERNEL && cd $KERNEL
-export LOCALVERSION=+🦖
+export LOCALVERSION=+🐝
 
 # Bail out if script fails
 set -e
