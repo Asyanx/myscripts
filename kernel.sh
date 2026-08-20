@@ -69,7 +69,7 @@ fi
 # Build Author
 # Take care, it should be a universal and most probably, case-sensitive
 AUTHOR="Asyanx"
-HOSTR="SICK"
+HOSTR="vR1.0"
 
 # Architecture
 ARCH=arm64
