@@ -115,6 +115,7 @@ DEF_REG=0
 
 # Files/artifacts
 FILES=Image.gz-dtb
+DTB_FILES=sdm636-mtp-whyred.dtb
 
 # Build dtbo.img (select this only if your source has support to building dtbo.img)
 # 1 is YES | 0 is NO(default)
@@ -366,6 +367,7 @@ gen_zip()
 {
 	msger -n "|| Zipping into a flashable zip ||"
 	mv "$KERNEL_DIR"/out/arch/arm64/boot/$FILES AnyKernel3/$FILES
+	mv "$KERNEL_DIR"/out/arch/arm64/boot/dts/vendor/qcom/$DTB_FILE AnyKernel3/kernel.dtb
 	if [ $BUILD_DTBO = 1 ]
 	then
 		mv "$KERNEL_DIR"/out/arch/arm64/boot/dtbo.img AnyKernel3/dtbo.img
