@@ -61,7 +61,7 @@ RELEASE=R1
 ZIPNAME="Sea"
 if [ $KSU = 1 ]
 then
-   VER="$RELEASE-KSU"
+   VER="$RELEASE-KSU-4.19"
 else
     VER="$RELEASE"
 fi
@@ -367,7 +367,7 @@ gen_zip()
 {
 	msger -n "|| Zipping into a flashable zip ||"
 	mv "$KERNEL_DIR"/out/arch/arm64/boot/$FILES AnyKernel3/$FILES
-	mv "$KERNEL_DIR"/out/arch/arm64/boot/dts/vendor/qcom/$DTB_FILE AnyKernel3/kernel.dtb
+#	mv "$KERNEL_DIR"/out/arch/arm64/boot/dts/vendor/qcom/$DTB_FILE AnyKernel3/kernel.dtb
 	if [ $BUILD_DTBO = 1 ]
 	then
 		mv "$KERNEL_DIR"/out/arch/arm64/boot/dtbo.img AnyKernel3/dtbo.img
