@@ -61,7 +61,7 @@ RELEASE=R1s
 ZIPNAME="Sea"
 if [ $KSU = 1 ]
 then
-   VER="$RELEASE-KSU-419-16QPR2"
+   VER="$RELEASE-KSU-419-OC-UV"
 else
     VER="$RELEASE"
 fi
