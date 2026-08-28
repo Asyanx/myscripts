@@ -23,8 +23,8 @@ WORKDIR="$(pwd)"
 KERNEL="$WORKDIR/kernel"
 
 # Cloning Sources
-git clone --single-branch --depth=1 https://github.com/Asyanx/kernel-whyred-4.19 -b android-4.19-stable $KERNEL && cd $KERNEL
-export LOCALVERSION=✨
+git clone --single-branch --depth=1 https://github.com/Asyanx/kernel-whyred-4.19 -b back $KERNEL && cd $KERNEL
+export LOCALVERSION=+qpr2✨
 
 # Bail out if script fails
 set -e
@@ -61,7 +61,7 @@ RELEASE=R1s
 ZIPNAME="Sea"
 if [ $KSU = 1 ]
 then
-   VER="$RELEASE-HOTFIX-KSU-419-UV"
+   VER="$RELEASE-QPR2-KSU-419-UV"
 else
     VER="$RELEASE"
 fi
