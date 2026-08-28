@@ -61,7 +61,7 @@ RELEASE=R1s
 ZIPNAME="Sea"
 if [ $KSU = 1 ]
 then
-   VER="$RELEASE-KSU-419-OC-UV"
+   VER="$RELEASE-HOTFIX-KSU-419-OC-UV"
 else
     VER="$RELEASE"
 fi
@@ -274,7 +274,7 @@ build_kernel()
  	if [ $KSU = 1 ]
  	then
    	  echo "CONFIG_NOMOUNT=y" >> arch/arm64/configs/$DEFCONFIG
- 	  curl -LSs "https://raw.githubusercontent.com/xxblebleblexx/nomount-installer/refs/heads/installer/nomount.sh" | bash -s 4.19
+ 	  curl https://raw.githubusercontent.com/maxsteeel/nomount/refs/heads/dev/kernel/setup.sh | bash -
  	fi
 
 
