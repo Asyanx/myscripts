@@ -23,7 +23,7 @@ WORKDIR="$(pwd)"
 KERNEL="$WORKDIR/kernel"
 
 # Cloning Sources
-git clone --single-branch --depth=1 https://github.com/Asyanx/kernel-whyred-4.19 -b android-4.19-stable-oc $KERNEL && cd $KERNEL
+git clone --single-branch --depth=1 https://github.com/Asyanx/kernel-whyred-4.19 -b back $KERNEL && cd $KERNEL
 export LOCALVERSION=++🐐
 
 # Bail out if script fails
@@ -55,13 +55,13 @@ BASEDIR="$(basename "$KERNEL_DIR")"
 
 # PATCH KERNELSU & RELEASE VERSION
 KSU=1
-RELEASE=R1g
+RELEASE=R1G
 
 # The name of the Kernel, to name the ZIP
 ZIPNAME="Sea"
 if [ $KSU = 1 ]
 then
-   VER="$RELEASE-R1G-KSU-419-OC-UV"
+   VER="$RELEASE-QPR2-KSU-419-OC-UV"
 else
     VER="$RELEASE"
 fi
