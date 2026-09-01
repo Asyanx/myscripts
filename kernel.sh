@@ -69,7 +69,7 @@ fi
 # Build Author
 # Take care, it should be a universal and most probably, case-sensitive
 AUTHOR="Asyanx"
-HOSTR="OC-R2"
+HOSTR="OC-version"
 
 # Architecture
 ARCH=arm64
@@ -271,11 +271,11 @@ build_kernel()
 		tg_post_msg "<b>Sea CI Build Triggered</b>%0A<b>Docker OS: </b><code>$DISTRO</code>%0A<b>Kernel Version : </b><code>$KERVER</code>%0A<b>Date : </b><code>$(TZ=Asia/Jakarta date)</code>%0A<b>Device : </b><code>$MODEL [$DEVICE]</code>%0A<b>Host Core Count : </b><code>$PROCS</code>%0A<b>Compiler Used : </b><code>$KBUILD_COMPILER_STRING</code>%0A<b>NON KernelSU:<code>No KSU</code>%0A</b><b>Top Commit : </b><code>$COMMIT_HEAD</code>"
     fi
 
-# 	if [ $KSU = 1 ]
-#	then
-#   	  echo "CONFIG_NOMOUNT=y" >> arch/arm64/configs/$DEFCONFIG
-# 	  curl https://raw.githubusercontent.com/maxsteeel/nomount/refs/heads/dev/kernel/setup.sh | bash -
-# 	fi
+ 	if [ $KSU = 1 ]
+	then
+   	  echo "CONFIG_NOMOUNT=y" >> arch/arm64/configs/$DEFCONFIG
+ 	  curl https://raw.githubusercontent.com/maxsteeel/nomount/refs/heads/dev/kernel/setup.sh | bash -
+ 	fi
 
 
 	make O=out $DEFCONFIG
