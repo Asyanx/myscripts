@@ -186,7 +186,7 @@ WAKTU=$(date +"%F-%S")
 
 	if [ $COMPILER = "clang" ]
 	then
-		git clone --depth=1 https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r547379.git ${TC_DIR}
+		git clone --depth=1 https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r596125.git ${TC_DIR}
   		export LLVM=1
 		export LLVM_IAS=1
 	fi
