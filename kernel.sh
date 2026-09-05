@@ -23,7 +23,7 @@ WORKDIR="$(pwd)"
 KERNEL="$WORKDIR/kernel"
 
 # Cloning Sources
-git clone --single-branch --depth=1 https://github.com/Asyanx/kernel-whyred-4.19 -b android-4.19-stable-oc $KERNEL && cd $KERNEL
+git clone --single-branch --depth=1 https://github.com/Asyanx/kernel-whyred-4.19 -b back-oc-backup $KERNEL && cd $KERNEL
 export LOCALVERSION=++/R2🐐
 
 # Bail out if script fails
@@ -61,7 +61,7 @@ RELEASE=R2
 ZIPNAME="Sea"
 if [ $KSU = 1 ]
 then
-   VER="$RELEASE-KSU-419-OC-UV"
+   VER="$RELEASE-KSU-419-OC"
 else
     VER="$RELEASE"
 fi
@@ -69,7 +69,7 @@ fi
 # Build Author
 # Take care, it should be a universal and most probably, case-sensitive
 AUTHOR="Asyanx"
-HOSTR="SeaWE"
+HOSTR="SeaWE+"
 
 # Architecture
 ARCH=arm64
