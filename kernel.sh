@@ -23,8 +23,8 @@ WORKDIR="$(pwd)"
 KERNEL="$WORKDIR/kernel"
 
 # Cloning Sources
-git clone --single-branch --depth=1 https://github.com/Asyanx/kernel-whyred-4.19 -b back-oc-backup $KERNEL && cd $KERNEL
-export LOCALVERSION=++/R2🐐
+git clone --single-branch --depth=1 https://github.com/Asyanx/sea_kernel_xiaomi_sm6225 -b luna-staging $KERNEL && cd $KERNEL
+export LOCALVERSION=⚓
 
 # Bail out if script fails
 set -e
@@ -55,41 +55,43 @@ BASEDIR="$(basename "$KERNEL_DIR")"
 
 # PATCH KERNELSU & RELEASE VERSION
 KSU=1
-RELEASE=R2
-
-# The name of the Kernel, to name the ZIP
-ZIPNAME="Sea"
+RELEASE=v3
 if [ $KSU = 1 ]
 then
-   VER="$RELEASE-KSU-419-OC"
+	KSU_GIT_VERSION=$(cd KernelSU && git rev-list --count HEAD)
+	KERNELSU_VERSION=$(($KSU_GIT_VERSION + 10000 + 2000))
+fi
+
+# The name of the Kernel, to name the ZIP
+ZIPNAME="SLCK"
+if [ $KSU = 1 ]
+then
+   VER="$RELEASE-KSU"
 else
-    VER="$RELEASE"
+    VER="$RELEASE-NONKSU"
 fi
 
 # Build Author
 # Take care, it should be a universal and most probably, case-sensitive
 AUTHOR="Asyanx"
-HOSTR="SeaWE+"
+HOSTR="v3"
 
 # Architecture
 ARCH=arm64
 
 # The name of the device for which the kernel is built
-MODEL="Redmi Note 5/PRO"
+MODEL="Redmi 10C"
 
 # The codename of the device
-DEVICE="Whyred"
+DEVICE="fog"
 
 # The defconfig which should be used. Get it from config.gz from
 # your device or check source
-DEFCONFIG=vendor/whyred-perf_defconfig
+DEFCONFIG=vendor/fog-perf_defconfig
 
 # Specify compiler.
 # 'clang' or 'gcc'
 COMPILER=clang
-
-# Toolchain Directory defaults to clang-llvm
-TC_DIR=$KERNEL_DIR/clang-llvm
 
 # Build modules. 0 = NO | 1 = YES
 MODULES=0
@@ -114,8 +116,7 @@ fi
 DEF_REG=0
 
 # Files/artifacts
-FILES=Image.gz-dtb
-DTB_FILES=sdm636-mtp-whyred.dtb
+FILES=Image.gz
 
 # Build dtbo.img (select this only if your source has support to building dtbo.img)
 # 1 is YES | 0 is NO(default)
@@ -186,11 +187,11 @@ WAKTU=$(date +"%F-%S")
 
 	if [ $COMPILER = "clang" ]
 	then
-        mkdir clang-llvm
+                mkdir clang-llvm
 		wget https://github.com/ZyCromerZ/Clang/releases/download/22.0.0git-20250805-release/Clang-22.0.0git-20250805.tar.gz -O "Clang-22.0.0git-20250805.tar.gz"
-        tar -xf Clang-22.0.0git-20250805.tar.gz -C clang-llvm
+                tar -xf Clang-22.0.0git-20250805.tar.gz -C clang-llvm
 		git clone https://github.com/ZyCromerZ/aarch64-zyc-linux-gnu -b 14 gcc64 --depth=1
-        git clone https://github.com/ZyCromerZ/arm-zyc-linux-gnueabi -b 14 gcc32 --depth=1
+                git clone https://github.com/ZyCromerZ/arm-zyc-linux-gnueabi -b 14 gcc32 --depth=1
 		GCC64_DIR=$KERNEL_DIR/gcc64
 		GCC32_DIR=$KERNEL_DIR/gcc32
   		for64=aarch64-zyc-linux-gnu
@@ -205,7 +206,7 @@ WAKTU=$(date +"%F-%S")
 	fi
 
 	msger -n "|| Cloning Anykernel ||"
-	git clone --depth=1 https://github.com/Asyanx/AnyKernel3-whyred AnyKernel3
+	git clone --depth=1 https://github.com/Asyanx/AnyKernel3 -b master AnyKernel3
 
 	if [ $BUILD_DTBO = 1 ]
 	then
@@ -279,17 +280,10 @@ build_kernel()
 
 	if [ "$KSU" = 1 ]
  	then
-		tg_post_msg "<b>Sea CI Build Triggered</b>%0A<b>Docker OS: </b><code>$DISTRO</code>%0A<b>Kernel Version : </b><code>$KERVER</code>%0A<b>Date : </b><code>$(TZ=Asia/Jakarta date)</code>%0A<b>Device : </b><code>$MODEL [$DEVICE]</code>%0A<b>Host Core Count : </b><code>$PROCS</code>%0A<b>Compiler Used : </b><code>$KBUILD_COMPILER_STRING</code>%0A<b>KernelSU: </b><code>Yes This KSU</code>%0A<b>Top Commit : </b><code>$COMMIT_HEAD</code>"
+		tg_post_msg "<b>Sea CI Build Triggered</b>%0A<b>Docker OS: </b><code>$DISTRO</code>%0A<b>Kernel Version : </b><code>$KERVER</code>%0A<b>Date : </b><code>$(TZ=Asia/Jakarta date)</code>%0A<b>Device : </b><code>$MODEL [$DEVICE]</code>%0A<b>Host Core Count : </b><code>$PROCS</code>%0A<b>Compiler Used : </b><code>$KBUILD_COMPILER_STRING</code>%0A<b>KernelSU: </b><code>$KERNELSU_VERSION</code>%0A<b>Top Commit : </b><code>$COMMIT_HEAD</code>"
 	else
-		tg_post_msg "<b>Sea CI Build Triggered</b>%0A<b>Docker OS: </b><code>$DISTRO</code>%0A<b>Kernel Version : </b><code>$KERVER</code>%0A<b>Date : </b><code>$(TZ=Asia/Jakarta date)</code>%0A<b>Device : </b><code>$MODEL [$DEVICE]</code>%0A<b>Host Core Count : </b><code>$PROCS</code>%0A<b>Compiler Used : </b><code>$KBUILD_COMPILER_STRING</code>%0A<b>NON KernelSU:<code>No KSU</code>%0A</b><b>Top Commit : </b><code>$COMMIT_HEAD</code>"
-    fi
-
- 	if [ $KSU = 1 ]
-	then
-   	  echo "CONFIG_NOMOUNT=y" >> arch/arm64/configs/$DEFCONFIG
- 	  curl https://raw.githubusercontent.com/maxsteeel/nomount/refs/heads/dev/kernel/setup.sh | bash -
- 	fi
-
+		tg_post_msg "<b>Sea CI Build Triggered</b>%0A<b>Docker OS: </b><code>$DISTRO</code>%0A<b>Kernel Version : </b><code>$KERVER</code>%0A<b>Date : </b><code>$(TZ=Asia/Jakarta date)</code>%0A<b>Device : </b><code>$MODEL [$DEVICE]</code>%0A<b>Host Core Count : </b><code>$PROCS</code>%0A<b>Compiler Used : </b><code>$KBUILD_COMPILER_STRING</code>%0A<b>NON KernelSU:<code>This is not KSU</code>%0A</b><b>Top Commit : </b><code>$COMMIT_HEAD</code>"
+    	fi
 
 	make O=out $DEFCONFIG
 	if [ $DEF_REG = 1 ]
@@ -309,9 +303,9 @@ build_kernel()
 			CROSS_COMPILE=aarch64-zyc-linux-gnu- \
 			CROSS_COMPILE_ARM32=arm-zyc-linux-gnueabi- \
    			CLANG_TRIPLE=aarch64-linux-gnu- \
-        	HOSTCC=gcc \
+        		HOSTCC=gcc \
 	  		HOSTCXX=g++ ${MorePlusPlus}
-	) 
+     ) 
 	elif [ $COMPILER = "gcc" ]
 	then
 		MAKE+=(
@@ -376,7 +370,6 @@ gen_zip()
 {
 	msger -n "|| Zipping into a flashable zip ||"
 	mv "$KERNEL_DIR"/out/arch/arm64/boot/$FILES AnyKernel3/$FILES
-#	mv "$KERNEL_DIR"/out/arch/arm64/boot/dts/vendor/qcom/$DTB_FILE AnyKernel3/kernel.dtb
 	if [ $BUILD_DTBO = 1 ]
 	then
 		mv "$KERNEL_DIR"/out/arch/arm64/boot/dtbo.img AnyKernel3/dtbo.img
