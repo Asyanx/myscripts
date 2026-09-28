@@ -24,7 +24,7 @@ KERNEL="$WORKDIR/kernel"
 
 # Cloning Sources
 git clone --single-branch --depth=1 https://github.com/Asyanx/sea_kernel_xiaomi_sm6225 -b luna-staging $KERNEL && cd $KERNEL
-export LOCALVERSION=⚓
+export LOCALVERSION=🍻
 
 # Bail out if script fails
 set -e
